@@ -121,7 +121,7 @@ void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 					(i == 2 ? (j == 0 ? -1 : 1) : 0)
 				);//生成六种情况
 				Block* bl = Level::getBlock(newpos, task_list[id].dimId);
-				if (bl->getTypeName() == task_list[id].name && !chaining_blocks.count(newpos.toString())) {
+				if (bl->getTypeName() == task_list[id].name) {
 					logger.debug("{} can be mine", newpos.toString());
 
 					ItemStack* item = (ItemStack*)&pl->getCarriedItem();
@@ -145,5 +145,4 @@ end:
 	}
 	//logger.debug("task {} end.", id);
 
-	return;
 }
