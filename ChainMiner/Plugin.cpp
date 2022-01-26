@@ -1,4 +1,5 @@
 ﻿#include "pch.h"
+#include "LLAPI.h"
 
 #include <MC/Level.hpp>
 #include <MC/BlockInstance.hpp>
@@ -15,21 +16,30 @@
 #include "Config.h"
 
 #include <unordered_map>
-#include <unordered_set>
+#include <random>
 
 Logger logger("ChainMiner");
 
 std::unordered_map<string,int> chainables {};
+
+std::random_device rd;//使用硬件熵源的非确定随机数生成器(类)
+std::default_random_engine re(rd());//设置随机数分布类型
+std::uniform_int_distribution<int> ud(0, 99);//设置随机数返回
+//std::bernoulli_distribution rand_dist(0.5);//50%生成true
 
 typedef struct minerinfo {
 	string name;//方块名称
 	int dimId;//维度id
 	int limit;//最大挖掘数量
 	int cnt;//已挖掘数量
-    short enchUnbreaking;//耐久附魔等级(没有为0)
+    int cntD;//需要扣除的耐久
+    ItemStack* tool{};//工具
+    short enchU;//耐久附魔等级(没有为0)
 } MinerInfo;
 
 std::unordered_map<int, MinerInfo> task_list;//id,cnt
+
+bool useMoney = false;
 
 //声明
 void initEventOnPlayerDestroy();
@@ -38,11 +48,18 @@ void registerCommand();
 void miner1(int id, BlockPos* pos, Player* pl, bool sub = false);
 //便捷函数
 short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id);
+int getDamageFromNbt(std::unique_ptr<CompoundTag>& nbt);
+bool toolDamage(ItemStack* tool, int count);
 
 void PluginInit() {
 	initConfig();
 	initEventOnPlayerDestroy();
 	registerCommand();
+    if(LL::hasPlugin("LLMoney")) {
+        useMoney = true;
+    } else {
+        logger.info("未检测到LLMoney,付费连锁将会失效.");
+    }
 }
 
 void initEventOnPlayerDestroy() {
@@ -57,7 +74,6 @@ void initEventOnPlayerDestroy() {
 		Block* bl = bli.getBlock();
 		string bn = bl->getTypeName();
 		logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
-        logger.debug("{}","hhhh");
 		auto r = chainables.find(bn);
 		if (r != chainables.end()) {//如果是可以连锁挖掘的方块
 
@@ -66,23 +82,36 @@ void initEventOnPlayerDestroy() {
 
 			//判断是否含有精准采集
 			auto nbt = tool->getNbt();
+            logger.debug("{}",nbt->toSNBT());
 			bool hasSilkTouch = getEnchantLevel(nbt, 16);
-			
+
             //如果该工具无法挖掘就结束
 			bool canThisToolChain = (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
 			if (!canThisToolChain) return true;
 
 			//logger.debug("{} is chainable using {}", bn, tool->getTypeName());
+            int limit = std::min( chainables[bn], tool->getMaxDamage() - getDamageFromNbt(nbt) - 1);
 
-            //加入临时任务
-			int id = (int)task_list.size() + 1;
-			task_list.insert(std::pair<int, MinerInfo>{
-				id,
-				{ bn, bli.getDimensionId(), chainables[bn], 0 }
-			});
-			//logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
+            //仅当多个时
+            if(limit > 1) {
+                //加入临时任务
+                int id = (int)task_list.size() + 1;
+                task_list.insert(std::pair<int, MinerInfo>{
+                    id,
+                    { bn,
+                      bli.getDimensionId(),
+                            //留一点耐久,防止炸掉
+                      limit,
+                      0,
+                      0,
+                      tool,
+                      getEnchantLevel(nbt,17)
+                    }
+                });
+                //logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
 
-			miner1(id, &blp, e.mPlayer);
+                miner1(id, &blp, e.mPlayer);
+            }
 		}
 		return true;
 		});
@@ -97,7 +126,6 @@ short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id) {
 			ListTag* ench = tag->getList("ench");
 			for (auto it = ench->begin(); it != ench->end(); ++it) {
 				CompoundTag* ec = (*it)->asCompoundTag();
-				logger.debug("ec::{} {}", ec->toSNBT(), ec->getShort("id"));
 				if (ec->getShort("id") == id) {
 					return ec->getShort("lvl");
 				}
@@ -107,7 +135,32 @@ short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id) {
 	return 0;
 }
 
-#define random(x) rand()%(x)
+int getDamageFromNbt(std::unique_ptr<CompoundTag>& nbt) {
+    if (nbt->contains("tag")) {//必须判断否则会报错
+        auto tag = nbt->getCompound("tag");
+        if (tag->contains("Damage")) {
+            return tag->getInt("Damage");
+        }
+    }
+    return 0;
+}
+
+bool toolDamage(ItemStack* tool, int count) {
+    auto nbt = tool->getNbt();
+    if (nbt->contains("tag")) {//必须判断否则会报错
+        auto tag = nbt->getCompound("tag");
+        if (tag->contains("Damage")) {
+            if (tag->getInt("Damage") + count < tool->getMaxDamage()) {
+                tag->putInt("Damage", tag->getInt("Damage") + count);
+                logger.debug("{}", tag->getInt("Damage"));
+                //由于首个方块的破坏事件未处理完成,必须手动设置nbt否则会被还原
+                tool->setNbt((CompoundTag *) nbt.get());
+                return true;
+            }
+        }
+    }
+    return false;
+}
 
 void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 	if (task_list[id].cnt < task_list[id].limit) {
@@ -124,23 +177,27 @@ void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 				if (bl->getTypeName() == task_list[id].name) {
 					logger.debug("{} can be mine", newpos.toString());
 
-					ItemStack* item = (ItemStack*)&pl->getCarriedItem();
-					
-					//break a block
-					bl->playerDestroy(*pl, newpos);//playerDestroy并没有移除掉方块
-					Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//移除方块
+					//累计耐久损失
+                    if(task_list[id].enchU == 0 || (task_list[id].enchU > 0 && ud(re) < (100/(task_list[id].enchU + 1))))
+                        task_list[id].cntD++;
 
-					//update damage of the tool
+                    //break a block
+                    bl->playerDestroy(*pl, newpos);//playerDestroy有掉落物但没有移除掉方块
+                    Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//移除方块
+                    task_list[id].cnt++;
 
-					task_list[id].cnt++;
-					miner1(id, &newpos, pl, true);
+                    miner1(id, &newpos, pl, true);
 				}
 			}
 		}	
 	}
 	////超过限制数量/挖完了/没有相同方块
 end:
-	if (!sub) {//入口miner
+	if (!sub) {//是入口miner
+        //减少耐久
+        toolDamage(task_list[id].tool,task_list[id].cntD);
+        //手动给玩家替换工具
+        pl->refreshInventory();
 		task_list.erase(id);
 	}
 	//logger.debug("task {} end.", id);
