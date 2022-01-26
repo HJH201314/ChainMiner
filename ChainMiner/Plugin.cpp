@@ -26,10 +26,10 @@ typedef struct minerinfo {
 	int dimId;//维度id
 	int limit;//最大挖掘数量
 	int cnt;//已挖掘数量
+    short enchUnbreaking;//耐久附魔等级(没有为0)
 } MinerInfo;
 
 std::unordered_map<int, MinerInfo> task_list;//id,cnt
-std::unordered_set<string> chaining_blocks;//blockpos of prechain blocks
 
 //声明
 void initEventOnPlayerDestroy();
@@ -51,7 +51,7 @@ void initEventOnPlayerDestroy() {
 		BlockPos blp = bli.getPosition();
 
 		//if (chaining_blocks.contains(blp.toString())) {
-		//	return true;//如果是连锁采集的就不处理
+		//	return true;//如果是连锁采集的就不处理(pl->playerDestroy()似乎不会触发此事件)
 		//}
 
 		Block* bl = bli.getBlock();
@@ -68,11 +68,13 @@ void initEventOnPlayerDestroy() {
 			auto nbt = tool->getNbt();
 			bool hasSilkTouch = getEnchantLevel(nbt, 16);
 			
+            //如果该工具无法挖掘就结束
 			bool canThisToolChain = (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
-			if (!canThisToolChain) return true;//如果该工具无法挖掘就结束
+			if (!canThisToolChain) return true;
 
 			//logger.debug("{} is chainable using {}", bn, tool->getTypeName());
 
+            //加入临时任务
 			int id = (int)task_list.size() + 1;
 			task_list.insert(std::pair<int, MinerInfo>{
 				id,
@@ -80,9 +82,7 @@ void initEventOnPlayerDestroy() {
 			});
 			//logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
 
-			chaining_blocks.insert(blp.toString());
 			miner1(id, &blp, e.mPlayer);
-			chaining_blocks.erase(blp.toString());
 		}
 		return true;
 		});
@@ -124,11 +124,9 @@ void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 				if (bl->getTypeName() == task_list[id].name && !chaining_blocks.count(newpos.toString())) {
 					logger.debug("{} can be mine", newpos.toString());
 
-                    //
 					ItemStack* item = (ItemStack*)&pl->getCarriedItem();
 					
 					//break a block
-					chaining_blocks.insert(newpos.toString());
 					bl->playerDestroy(*pl, newpos);//playerDestroy并没有移除掉方块
 					Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//移除方块
 
@@ -136,7 +134,6 @@ void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 
 					task_list[id].cnt++;
 					miner1(id, &newpos, pl, true);
-					chaining_blocks.erase(newpos.toString());
 				}
 			}
 		}	
