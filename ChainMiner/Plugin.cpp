@@ -231,7 +231,7 @@ string s_replace(string strSrc,
     string strRet = strSrc;
     size_t pos = 0;
     int l_count = 0;
-    if (-1 == count) // replace all
+    if (-1 == count)
         count = strRet.size();
     while ((pos = strRet.find(oldStr, pos)) != string::npos)
     {
