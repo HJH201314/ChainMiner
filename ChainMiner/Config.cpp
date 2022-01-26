@@ -1,12 +1,13 @@
 ﻿#include "pch.h"
 #include "Config.h"
+#include "Economic.h"
 
 #define CONFIG_FILE "plugins/ChainMiner/config.json"
 
 using json = nlohmann::json;
 
 extern Logger logger;
-extern std::unordered_map<string, int> chainables;
+std::unordered_map<string, BlockInfo> block_list;
 json config_j;//全局储存配置
 
 void initConfig() {
@@ -44,21 +45,30 @@ void readConfig() {
 	}
 	configFile >> config_j;
 	configFile.close();
+    //方块列表
 	for (auto& el : config_j["blocks"].items()) {
-		chainables[el.key()] = el.value()["maximum"];
+        block_list[el.key()] = {el.value()["limit"], el.value()["cost"]};
 	}
+    //money
+    extern bool useMoney;
+    if(!config_j["money"]) {
+        useMoney = false;
+    } else {
+        useMoney = Economic::init();
+    }
 	logger.debug("载入完成!");
 }
 
 void updateConfig() {
 
 }
-#define DEFAULT_PARAMS {{"maximum",256},{"cost",1}}
+#define DEFAULT_PARAMS {{"limit",256},{"cost",0}}
 
 void writeDefaultConfig() {
 	json j = {
 		{"version",CURRENT_CONFIG_VERSION},//版本
         {"command","hcm"},//指令
+        {"money",true},//是否使用money
 		{"blocks",{
 			{"minecraft:log",DEFAULT_PARAMS},//原木
 			{"minecraft:iron_ore",DEFAULT_PARAMS},//铁矿
@@ -80,7 +90,11 @@ void writeDefaultConfig() {
 			{"minecraft:deepslate_redstone_ore",DEFAULT_PARAMS},//深层红石矿
 			{"minecraft:deepslate_emerald_ore",DEFAULT_PARAMS},//深层绿宝石矿
 			{"minecraft:deepslate_coal_ore",DEFAULT_PARAMS}//深层煤矿
-		}}
+		}},
+        {"msg",{
+            {"mine.success","§a连锁采集 §e%Count% §a个方块."},
+            {"money.use","§b使用了 §e%Cost% §b个金币§c,§b剩余 §e%Remain% §b金币."}
+        }}
 	};
 	std::ofstream configFile(CONFIG_FILE);
 	if (!configFile.is_open()) {
