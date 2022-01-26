@@ -17,6 +17,6 @@
 #include <third-party/rapidjson/document.h>
 #include <third-party/rapidjson/writer.h>
 #include <third-party/rapidjson/prettywriter.h>
-#include <third-party/Nlohmann/json.hpp>
+#include <third-party-me/nlohmann/json.hpp>
 
 #endif //PCH_H

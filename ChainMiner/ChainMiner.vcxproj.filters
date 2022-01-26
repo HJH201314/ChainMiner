@@ -41,27 +41,13 @@
     <ClCompile Include="Config.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="Command.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ChainMiner.rc">
       <Filter>资源文件</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\..\SDK\Lib\LiteLoader.lib">
-      <Filter>资源文件</Filter>
-    </Library>
-    <Library Include="..\..\SDK\Lib\Chakra.lib">
-      <Filter>资源文件</Filter>
-    </Library>
-    <Library Include="..\..\LiteLoader\LiteLoader\Lib\bedrock_server_var.lib">
-      <Filter>资源文件</Filter>
-    </Library>
-    <Library Include="..\..\LiteLoader\LiteLoader\Lib\SymDBHelper.lib">
-      <Filter>资源文件</Filter>
-    </Library>
-    <Library Include="..\..\LiteLoader\LiteLoader\Lib\bedrock_server_api.lib">
-      <Filter>资源文件</Filter>
-    </Library>
   </ItemGroup>
 </Project>

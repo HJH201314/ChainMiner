@@ -1,15 +1,18 @@
 ﻿#include "pch.h"
 #include "Config.h"
 
-#define CONFIG_PATH "plugins/ChainMiner/config.json"
+#define CONFIG_FILE "plugins/ChainMiner/config.json"
+
+using json = nlohmann::json;
 
 extern Logger logger;
 extern std::unordered_map<string, int> chainables;
+json config_j;//全局储存配置
 
 void initConfig() {
 	if (!std::filesystem::exists("plugins/ChainMiner/"))
 		std::filesystem::create_directories("plugins/ChainMiner/");
-	if (std::filesystem::exists("plugins/ChainMiner/config.json") && !std::filesystem::is_empty("plugins/ChainMiner/config.json")) {
+	if (std::filesystem::exists(CONFIG_FILE) && !std::filesystem::is_empty(CONFIG_FILE)) {
 		try {
 			logger.debug("载入配置...");
 			readConfig();
@@ -26,26 +29,23 @@ void initConfig() {
 		}
 	}
 	else {
-		logger.debug("写出默认配置...");
+		logger.debug("写出并应用默认配置...");
 		writeDefaultConfig();
 	}
 }
 
 #define CURRENT_CONFIG_VERSION 1
 
-using json = nlohmann::json;
-
 void readConfig() {
-	std::ifstream configFile(CONFIG_PATH);
+	std::ifstream configFile(CONFIG_FILE);
 	if (!configFile.is_open()) {
-		logger.warn("无法打开文件: " CONFIG_PATH);
+		logger.warn("无法打开文件: " CONFIG_FILE);
 		return;
 	}
-	json j;
-	configFile >> j;
+	configFile >> config_j;
 	configFile.close();
-	for (auto& el : j["blocks"].items()) {
-		chainables.insert(std::pair<string, int>{el.key(), el.value()});
+	for (auto& el : config_j["blocks"].items()) {
+		chainables[el.key()] = el.value()["maximum"];
 	}
 	logger.debug("载入完成!");
 }
@@ -53,11 +53,12 @@ void readConfig() {
 void updateConfig() {
 
 }
-#define DEFAULT_PARAMS {{"maximum",100},{"cost",1}}
+#define DEFAULT_PARAMS {{"maximum",256},{"cost",1}}
 
 void writeDefaultConfig() {
 	json j = {
 		{"version",CURRENT_CONFIG_VERSION},//版本
+        {"command","hcm"},//指令
 		{"blocks",{
 			{"minecraft:log",DEFAULT_PARAMS},//原木
 			{"minecraft:iron_ore",DEFAULT_PARAMS},//铁矿
@@ -81,11 +82,12 @@ void writeDefaultConfig() {
 			{"minecraft:deepslate_coal_ore",DEFAULT_PARAMS}//深层煤矿
 		}}
 	};
-	std::ofstream configFile("plugins/ChainMiner/config.json");
+	std::ofstream configFile(CONFIG_FILE);
 	if (!configFile.is_open()) {
-		logger.warn("无法打开文件: " CONFIG_PATH);
+		logger.warn("无法打开文件: " CONFIG_FILE);
 		return;
 	}
 	configFile << j.dump(4);
 	configFile.close();
+    readConfig();
 }

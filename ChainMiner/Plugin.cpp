@@ -10,6 +10,7 @@
 #include <MC/Player.hpp>
 #include <MC/ItemStack.hpp>
 #include <MC/ItemInstance.hpp>
+#include <MC/ListTag.hpp>
 
 #include "Config.h"
 
@@ -32,12 +33,16 @@ std::unordered_set<string> chaining_blocks;//blockpos of prechain blocks
 
 //声明
 void initEventOnPlayerDestroy();
+void registerCommand();
 //六向采集
 void miner1(int id, BlockPos* pos, Player* pl, bool sub = false);
+//便捷函数
+short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id);
 
 void PluginInit() {
 	initConfig();
 	initEventOnPlayerDestroy();
+	registerCommand();
 }
 
 void initEventOnPlayerDestroy() {
@@ -45,24 +50,29 @@ void initEventOnPlayerDestroy() {
 		BlockInstance bli = e.mBlockInstance;
 		BlockPos blp = bli.getPosition();
 
-		if (chaining_blocks.contains(blp.toString())) {
-			//logger.debug("jump {}", blp.toString());
-			return true;//如果是连锁采集的就不处理
-		}
+		//if (chaining_blocks.contains(blp.toString())) {
+		//	return true;//如果是连锁采集的就不处理
+		//}
+
 		Block* bl = bli.getBlock();
 		string bn = bl->getTypeName();
 		logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
-
+        logger.debug("{}","hhhh");
 		auto r = chainables.find(bn);
 		if (r != chainables.end()) {//如果是可以连锁挖掘的方块
 
 			ItemStack* tool = (ItemStack*)&e.mPlayer->getCarriedItem();
 			auto& material = bl->getMaterial();
-			if (!material.isAlwaysDestroyable() && !tool->canDestroySpecial(*bl)) return true;//如果该工具无法挖掘就结束
+
+			//判断是否含有精准采集
+			auto nbt = tool->getNbt();
+			bool hasSilkTouch = getEnchantLevel(nbt, 16);
+			
+			bool canThisToolChain = (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
+			if (!canThisToolChain) return true;//如果该工具无法挖掘就结束
 
 			//logger.debug("{} is chainable using {}", bn, tool->getTypeName());
 
-			//start a task
 			int id = (int)task_list.size() + 1;
 			task_list.insert(std::pair<int, MinerInfo>{
 				id,
@@ -78,6 +88,27 @@ void initEventOnPlayerDestroy() {
 		});
 }
 
+//get enchant level with nbt && enchid
+//return level (0 when non-exist)
+short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id) {
+	if (nbt->contains("tag")) {//必须判断否则会报错
+		auto tag = nbt->getCompound("tag");
+		if (tag->contains("ench")) {
+			ListTag* ench = tag->getList("ench");
+			for (auto it = ench->begin(); it != ench->end(); ++it) {
+				CompoundTag* ec = (*it)->asCompoundTag();
+				logger.debug("ec::{} {}", ec->toSNBT(), ec->getShort("id"));
+				if (ec->getShort("id") == id) {
+					return ec->getShort("lvl");
+				}
+			}
+		}
+	}
+	return 0;
+}
+
+#define random(x) rand()%(x)
+
 void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 	if (task_list[id].cnt < task_list[id].limit) {
 		int i, j;
@@ -90,18 +121,18 @@ void miner1(int id, BlockPos* pos, Player* pl, bool sub) {
 					(i == 2 ? (j == 0 ? -1 : 1) : 0)
 				);//生成六种情况
 				Block* bl = Level::getBlock(newpos, task_list[id].dimId);
-				if (bl->getTypeName() == task_list[id].name && !chaining_blocks.contains(newpos.toString())) {
+				if (bl->getTypeName() == task_list[id].name && !chaining_blocks.count(newpos.toString())) {
 					logger.debug("{} can be mine", newpos.toString());
 
+                    //
 					ItemStack* item = (ItemStack*)&pl->getCarriedItem();
-					/*BlockSource* bs = Level::getBlockSource(task_list[id].dimId);
-					Level::breakBlockNaturally(bs, newpos, item);*/
 					
+					//break a block
 					chaining_blocks.insert(newpos.toString());
 					bl->playerDestroy(*pl, newpos);//playerDestroy并没有移除掉方块
 					Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//移除方块
 
-					//logger.debug("nj:{}", item->getDamageValue());
+					//update damage of the tool
 
 					task_list[id].cnt++;
 					miner1(id, &newpos, pl, true);
@@ -119,23 +150,3 @@ end:
 
 	return;
 }
-
-//void test(BlockPos* pos, Block* bl, Player* pl);
-//
-//bool hasDestroyed = false;
-//
-//void PluginInitTest() {
-//	Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent& e) {
-//		BlockInstance bli = e.mBlockInstance;
-//		BlockPos blp = bli.getPosition();
-//		if(!hasDestroyed)
-//			test(&blp, bli.getBlock(), e.mPlayer);
-//		return true;
-//	});
-//}
-//
-//void test(BlockPos* pos, Block* bl, Player* pl) {
-//	hasDestroyed = true;
-//	BlockPos newpos = pos->add(0, 1, 0);
-//	bl->playerDestroy(*pl, newpos);
-//}

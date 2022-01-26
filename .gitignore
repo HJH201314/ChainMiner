@@ -34,8 +34,10 @@
 # Directorys
 .vs/*
 .github/*
-.vs/*
 x64/*
 .idea/*
 ChainMiner/x64/*
 ChainMiner/Pdb/*
+ChainMiner/Tools/*
+cmake-build-release/*
+cmake-build-release-visual-studio/*

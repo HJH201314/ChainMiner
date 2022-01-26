@@ -84,20 +84,8 @@
       <DelayLoadDLLs>bedrock_server.dll</DelayLoadDLLs>
     </Link>
     <PreBuildEvent>
-      <Command>if not exist $(SolutionDir)SDK\Lib\bedrock_server_api.lib goto process
-if not exist $(SolutionDir)SDK\Lib\bedrock_server_var.lib goto process
-goto end
-
-:process
-cd /d $(SolutionDir)\SDK\Tools\
-if exist $(LocalDebuggerWorkingDirectory)\bedrock_server.pdb (
-LibraryBuilder.exe -o ..\Lib\ $(LocalDebuggerWorkingDirectory)
-) else (
-LibraryBuilder.exe -o ..\Lib\
-)
-
-:end
-			</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>if exist $(LocalDebuggerWorkingDirectory)\plugins\ (
@@ -127,20 +115,8 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
       <DelayLoadDLLs>bedrock_server.dll</DelayLoadDLLs>
     </Link>
     <PreBuildEvent>
-      <Command>if not exist $(SolutionDir)SDK\Lib\bedrock_server_api.lib goto process
-if not exist $(SolutionDir)SDK\Lib\bedrock_server_var.lib goto process
-goto end
-
-:process
-cd /d $(SolutionDir)\SDK\Tools\
-if exist $(LocalDebuggerWorkingDirectory)\bedrock_server.pdb (
-LibraryBuilder.exe -o ..\Lib\ $(LocalDebuggerWorkingDirectory)
-) else (
-LibraryBuilder.exe -o ..\Lib\
-)
-
-:end
-			</Command>
+      <Command>
+      </Command>
     </PreBuildEvent>
     <PostBuildEvent>
       <Command>if exist $(LocalDebuggerWorkingDirectory)\plugins\ (
@@ -155,6 +131,7 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
     <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Command.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="pch.cpp">
@@ -165,13 +142,6 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ChainMiner.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <Library Include="..\..\LiteLoader\LiteLoader\Lib\bedrock_server_api.lib" />
-    <Library Include="..\..\LiteLoader\LiteLoader\Lib\bedrock_server_var.lib" />
-    <Library Include="..\..\LiteLoader\LiteLoader\Lib\SymDBHelper.lib" />
-    <Library Include="..\..\SDK\Lib\Chakra.lib" />
-    <Library Include="..\..\SDK\Lib\LiteLoader.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,10 +1,10 @@
 ﻿// dllmain.cpp : 定义 DLL 应用程序的入口点。
-#pragma comment(lib, "../SDK/Lib/bedrock_server_api.lib")
-#pragma comment(lib, "../SDK/Lib/bedrock_server_var.lib")
-#pragma comment(lib, "../SDK/Lib/SymDBHelper.lib")
-#pragma comment(lib, "../SDK/Lib/LiteLoader.lib")
 #include "pch.h"
 #include "LLAPI.h"
+#pragma comment(lib, "../../SDK/Lib/bedrock_server_api.lib")
+#pragma comment(lib, "../../SDK/Lib/bedrock_server_var.lib")
+#pragma comment(lib, "../../SDK/Lib/SymDBHelper.lib")
+#pragma comment(lib, "../../SDK/Lib/LiteLoader.lib")
 
 #define PLUGIN_NAME "ChainMiner"
 #define PLUGIN_INTRO "A plugin enables players to mine quicker."
