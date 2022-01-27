@@ -13,8 +13,10 @@
 #include <MC/ItemInstance.hpp>
 #include <MC/ListTag.hpp>
 
+#include "Utils.h"
 #include "Config.h"
 #include "Economic.h"
+#include "PlayerSetting.h"
 
 #include <unordered_map>
 #include <random>
@@ -42,7 +44,7 @@ std::unordered_map<int, MinerInfo> task_list;//id,cnt
 extern std::unordered_map<string, BlockInfo> block_list;//方块列表
 extern nlohmann::json config_j;
 
-bool useMoney = false;
+extern bool useMoney;
 
 //声明
 void initEventOnPlayerDestroy();
@@ -59,23 +61,17 @@ int getDamageFromNbt(std::unique_ptr<CompoundTag> &nbt);
 
 bool toolDamage(ItemStack *tool, int count);
 
-string s_replace(string strSrc, const string& oldStr, const string& newStr, int count = -1);
-
 void PluginInit() {
     initConfig();
     initEventOnPlayerDestroy();
     registerCommand();
-    if (config_j["money"]) {
-        if (Economic::init()) {
-            useMoney = true;
-        } else {
-            logger.info("未检测到LLMoney,付费连锁将会失效!");
-        }
-    }
 }
 
 void initEventOnPlayerDestroy() {
     Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent &e) {
+        extern PlayerSetting playerSetting;
+        if(e.mPlayer->getPlayerGameType() != 0) return true;
+        if(!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
 
@@ -84,7 +80,7 @@ void initEventOnPlayerDestroy() {
         //}
         Block *bl = bli.getBlock();
         string bn = bl->getTypeName();
-        logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
+        //logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
         auto r = block_list.find(bn);
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
 
@@ -93,7 +89,7 @@ void initEventOnPlayerDestroy() {
 
             //判断是否含有精准采集
             auto nbt = tool->getNbt();
-            logger.debug("{}", nbt->toSNBT());
+            //logger.debug("{}", nbt->toSNBT());
             bool hasSilkTouch = getEnchantLevel(nbt, 16);
 
             //如果该工具无法挖掘就结束
@@ -101,7 +97,9 @@ void initEventOnPlayerDestroy() {
             if (!canThisToolChain) return true;
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());
-            int limit = std::min(block_list[bn].limit, tool->getMaxDamage() - getDamageFromNbt(nbt) - 1);//留一点耐久,防止炸掉
+            int limit = block_list[bn].limit;
+            if(tool->isDamageableItem())
+                limit = std::min(limit, tool->getMaxDamage() - getDamageFromNbt(nbt) - 1);//留一点耐久,防止炸掉
             if (useMoney && block_list[bn].cost > 0)
                 limit = std::min(limit, int(Economic::getMoney(e.mPlayer->getXuid()) / block_list[bn].cost));
 
@@ -187,7 +185,7 @@ void miner1(int id, BlockPos *pos, Player *pl, bool sub) {
                 );//生成六种情况
                 Block *bl = Level::getBlock(newpos, task_list[id].dimId);
                 if (bl->getTypeName() == task_list[id].name) {
-                    logger.debug("{} can be mine", newpos.toString());
+                    //logger.debug("{} can be mine", newpos.toString());
 
                     //累计耐久损失
                     if (task_list[id].enchU == 0 ||
@@ -224,20 +222,4 @@ void miner1(int id, BlockPos *pos, Player *pl, bool sub) {
         pl->sendTextPacket(msg);
     }
     //logger.debug("task {} end.", id);
-}
-
-string s_replace(string strSrc,
-                 const string& oldStr, const string& newStr, int count) {
-    string strRet = strSrc;
-    size_t pos = 0;
-    int l_count = 0;
-    if (-1 == count)
-        count = strRet.size();
-    while ((pos = strRet.find(oldStr, pos)) != string::npos)
-    {
-        strRet.replace(pos, oldStr.size(), newStr);
-        if (++l_count >= count) break;
-        pos += newStr.size();
-    }
-    return strRet;
 }

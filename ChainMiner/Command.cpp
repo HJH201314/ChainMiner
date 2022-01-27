@@ -1,5 +1,7 @@
 ﻿#include "pch.h"
+#include "Utils.h"
 #include "Config.h"
+#include "PlayerSetting.h"
 #include <RegCommandAPI.h>
 #include <MC/ItemStack.hpp>
 #include <MC/CompoundTag.hpp>
@@ -14,18 +16,45 @@ class ChainMinerCommand : public Command {
         on = 200,
         off = 201,
 	} op;
+    CommandSelector<Player> player;
+    bool player_isSet;
 public:
 	void execute(CommandOrigin const& ori, CommandOutput& outp) const {
 		switch (op) {
             case CMOP::reload: {
-                readConfig();
-                outp.success("§e重载成功!");
+                if(ori.getPermissionsLevel() > 0) {
+                    readConfig();
+                    outp.success("§e重载成功!");
+                }
                 return;
             }
+            extern PlayerSetting playerSetting;
             case CMOP::on: {
+                Player* pl = getPlayerFromOrigin(ori);
+                if(player_isSet) {//选择器
+                    for(auto el : player.results(ori))
+                        if(el->isPlayer())
+                            if(ori.getPermissionsLevel() > 0 || pl->getXuid() == el->getXuid())
+                                playerSetting.turnOn(el->getXuid());
+                    outp.success(config_j["msg"]["switch.on"]);
+                } else {
+                    playerSetting.turnOn(pl->getXuid());
+                    pl->sendTextPacket(config_j["msg"]["switch.on"]);
+                }
                 return;
             }
             case CMOP::off: {
+                Player* pl = getPlayerFromOrigin(ori);
+                if(player_isSet) {//选择器
+                    for(auto el : player.results(ori))
+                        if(el->isPlayer())
+                            if(ori.getPermissionsLevel() > 0 || pl->getXuid() == el->getXuid())
+                                playerSetting.turnOff(el->getXuid());
+                    outp.success(config_j["msg"]["switch.off"]);
+                } else {
+                    playerSetting.turnOff(pl->getXuid());
+                    pl->sendTextPacket(config_j["msg"]["switch.off"]);
+                }
                 return;
             }
 		default:
@@ -35,9 +64,22 @@ public:
 	static void setup(CommandRegistry* registry) {
 		using RegisterCommandHelper::makeMandatory;
 		using RegisterCommandHelper::makeOptional;
-		registry->registerCommand(config_j["command"], "ChainMiner连锁采集", CommandPermissionLevel::Any, { (CommandFlagValue)0 }, { (CommandFlagValue)0x80 });
-		registry->addEnum<CMOP>("CMOP", { {"reload", CMOP::reload}, {"on", CMOP::on}, {"off", CMOP::off} });
-		registry->registerOverload<ChainMinerCommand>(config_j["command"], makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::op, "operator","操作"));
+		registry->registerCommand(config_j["command"],
+                                  "ChainMiner连锁采集",
+                                  CommandPermissionLevel::Any,
+                                  { (CommandFlagValue)0 }, { (CommandFlagValue)0x80 });
+		registry->addEnum<CMOP>("OP1",
+                                { {"reload", CMOP::reload} });
+        registry->addEnum<CMOP>("OP2",
+                                { {"on", CMOP::on},
+                                  {"off", CMOP::off} });
+		registry->registerOverload<ChainMinerCommand>(
+                config_j["command"],
+                makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::op, "optional","OP1"));
+        registry->registerOverload<ChainMinerCommand>(
+                config_j["command"],
+                makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::op, "optional","OP2"),
+                makeOptional(&ChainMinerCommand::player,"player",&ChainMinerCommand::player_isSet));
 	}
 };
 

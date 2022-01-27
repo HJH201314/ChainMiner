@@ -4,7 +4,7 @@
 #include <TranslationAPI.h>
 #include <string>
 
-Logger economicLogger("EconomicSystem");
+extern Logger logger;
 
 typedef money_t(*LLMoneyGet_T)(xuid_t);
 typedef string(*LLMoneyGetHist_T)(xuid_t, int);
@@ -44,31 +44,31 @@ bool Economic::init()
 
     dynamicSymbolsMap.LLMoneyGet = (LLMoneyGet_T)GetProcAddress(h, "LLMoneyGet");
     if (!dynamicSymbolsMap.LLMoneyGet)
-        economicLogger.warn("Fail to load API money.getMoney!");
+        logger.warn("Fail to load API money.getMoney!");
 
     dynamicSymbolsMap.LLMoneySet = (LLMoneySet_T)GetProcAddress(h, "LLMoneySet");
     if (!dynamicSymbolsMap.LLMoneySet)
-        economicLogger.warn("Fail to load API money.setMoney!");
+        logger.warn("Fail to load API money.setMoney!");
 
     dynamicSymbolsMap.LLMoneyAdd = (LLMoneyAdd_T)GetProcAddress(h, "LLMoneyAdd");
     if (!dynamicSymbolsMap.LLMoneyAdd)
-        economicLogger.warn("Fail to load API money.addMoney!");
+        logger.warn("Fail to load API money.addMoney!");
 
     dynamicSymbolsMap.LLMoneyReduce = (LLMoneyReduce_T)GetProcAddress(h, "LLMoneyReduce");
     if (!dynamicSymbolsMap.LLMoneyReduce)
-        economicLogger.warn("Fail to load API money.reduceMoney!");
+        logger.warn("Fail to load API money.reduceMoney!");
 
     dynamicSymbolsMap.LLMoneyTrans = (LLMoneyTrans_T)GetProcAddress(h, "LLMoneyTrans");
     if (!dynamicSymbolsMap.LLMoneyTrans)
-        economicLogger.warn("Fail to load API money.transMoney!");
+        logger.warn("Fail to load API money.transMoney!");
 
     dynamicSymbolsMap.LLMoneyGetHist = (LLMoneyGetHist_T)GetProcAddress(h, "LLMoneyGetHist");
     if (!dynamicSymbolsMap.LLMoneyGetHist)
-        economicLogger.warn("Fail to load API money.getTransHist!");
+        logger.warn("Fail to load API money.getTransHist!");
 
     dynamicSymbolsMap.LLMoneyClearHist = (LLMoneyClearHist_T)GetProcAddress(h, "LLMoneyClearHist");
     if (!dynamicSymbolsMap.LLMoneyClearHist)
-        economicLogger.warn("Fail to load API money.clearHist!");
+        logger.warn("Fail to load API money.clearHist!");
 
     dynamicSymbolsMap.LLMoneyListenBeforeEvent = (LLMoneyListenBeforeEvent_T)GetProcAddress(h, "LLMoneyListenBeforeEvent");
 
@@ -81,7 +81,7 @@ money_t Economic::getMoney(xuid_t player)
         return dynamicSymbolsMap.LLMoneyGet(player);
     else
     {
-        economicLogger.error("API money.getMoney have not been loaded!");
+        logger.error("API money.getMoney have not been loaded!");
         return 0;
     }
 }
@@ -92,7 +92,7 @@ bool Economic::setMoney(xuid_t player, money_t money)
         return dynamicSymbolsMap.LLMoneySet(player, money);
     else
     {
-        economicLogger.error("API money.setMoney have not been loaded!");
+        logger.error("API money.setMoney have not been loaded!");
         return false;
     }
 }
@@ -103,7 +103,7 @@ bool Economic::addMoney(xuid_t player, money_t money)
         return dynamicSymbolsMap.LLMoneyAdd(player, money);
     else
     {
-        economicLogger.error("API money.addMoney have not been loaded!");
+        logger.error("API money.addMoney have not been loaded!");
         return false;
     }
 }
@@ -114,7 +114,7 @@ bool Economic::reduceMoney(xuid_t player, money_t money)
         return dynamicSymbolsMap.LLMoneyReduce(player, money);
     else
     {
-        economicLogger.error("API money.reduceMoney have not been loaded!");
+        logger.error("API money.reduceMoney have not been loaded!");
         return false;
     }
 }
@@ -125,7 +125,7 @@ bool Economic::transMoney(xuid_t player1, xuid_t player2, money_t money, string 
         return dynamicSymbolsMap.LLMoneyTrans(player1, player2, money, notes);
     else
     {
-        economicLogger.error("API money.transMoney have not been loaded!");
+        logger.error("API money.transMoney have not been loaded!");
         return false;
     }
 }
@@ -136,7 +136,7 @@ std::string Economic::getMoneyHist(xuid_t player, int time)
         return dynamicSymbolsMap.LLMoneyGetHist(player, time);
     else
     {
-        economicLogger.error("API money.getTransHist have not been loaded!");
+        logger.error("API money.getTransHist have not been loaded!");
         return "";
     }
 }
@@ -150,7 +150,7 @@ bool Economic::clearMoneyHist(int time)
     }
     else
     {
-        economicLogger.error("API money.clearHist have not been loaded!");
+        logger.error("API money.clearHist have not been loaded!");
         return false;
     }
 }
