@@ -4,6 +4,7 @@
 #include "PlayerSetting.h"
 
 #define CONFIG_FILE "plugins/ChainMiner/config.json"
+#define DEFAULT_CONFIG 
 
 using json = nlohmann::json;
 
@@ -125,7 +126,7 @@ void writeDefaultConfig() {
     };
     std::ofstream configFile(CONFIG_FILE);
     if (!configFile.is_open()) {
-        logger.warn("无法打开文件: " CONFIG_FILE);
+        logger.warn("Failed to open file: " CONFIG_FILE);
         return;
     }
     configFile << j.dump(4);

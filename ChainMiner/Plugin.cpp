@@ -205,21 +205,23 @@ void miner1(int id, BlockPos *pos, Player *pl, bool sub) {
     ////超过限制数量/挖完了/没有相同方块
     end:
     if (!sub) {//是入口miner
-        //减少耐久
-        toolDamage(task_list[id].tool, task_list[id].cntD);
-        //手动给玩家替换工具
-        pl->refreshInventory();
-        string msg = config_j["msg"]["mine.success"];
-        msg = s_replace(msg,"%Count%",std::to_string(task_list[id].cnt));
-        if (useMoney) {
-            long long cost = block_list[task_list[id].name].cost * (task_list[id].cnt - 1);//有一个时自己挖的
-            Economic::reduceMoney(pl->getXuid(), cost);
-            msg += config_j["msg"]["money.use"];
-            msg = s_replace(msg,"%Cost%",std::to_string(cost));
-            msg = s_replace(msg,"%Remain%",std::to_string(Economic::getMoney(pl->getXuid())));
+        if(task_list[id].cnt > 0) {
+            //减少耐久
+            toolDamage(task_list[id].tool, task_list[id].cntD);
+            //手动给玩家替换工具
+            pl->refreshInventory();
+            string msg = config_j["msg"]["mine.success"];
+            msg = s_replace(msg,"%Count%",std::to_string(task_list[id].cnt));
+            if (useMoney) {
+                long long cost = block_list[task_list[id].name].cost * (task_list[id].cnt - 1);//有一个时自己挖的
+                Economic::reduceMoney(pl->getXuid(), cost);
+                msg += config_j["msg"]["money.use"];
+                msg = s_replace(msg,"%Cost%",std::to_string(cost));
+                msg = s_replace(msg,"%Remain%",std::to_string(Economic::getMoney(pl->getXuid())));
+            }
+            pl->sendTextPacket(msg);
         }
         task_list.erase(id);
-        pl->sendTextPacket(msg);
     }
     //logger.debug("task {} end.", id);
 }
