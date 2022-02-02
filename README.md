@@ -1,29 +1,38 @@
 # ChainMiner - 连锁采集
 
 A plugin for Bedrock Dedicated Server on LiteLoaderBDS.
-一个新手写的基于LiteLoaderBDS的插件
+一个新手写的基于LiteLoaderBDS（[MineBBS](https://www.minebbs.com/liteloader/) [Github](https://github.com/LiteLDev/LiteLoaderBDS)）的插件
 
 This plugin enables players to collect blocks quicker.
-这个插件可以帮助玩家更快地采集方块
+这个插件旨在帮助玩家更快地采集方块
 
 Bugs are unavoidable because I'm a beginner, please forgive me.
 由于本人是编程初学者，插件难免存在不足，恳请各位指正。
 
-## 特性 Features
+## 特性 - Feature
 
-- 兼容耐久、精准采集魔咒
-- 在工具爆掉之前停止
+- 兼容耐久、时运魔咒
+  Compatible with unbreaking and fortune
+
+- 工具耐久耗尽保护
+  Tool durability depletion protection
+
 - 仅在生存模式下可使用连锁
-- 允许玩家自由开关
-- 对接LLMoney（[MineBBS](https://www.minebbs.com/resources/llmoney-ll.2385/) [Github](https://github.com/LiteLDev/LiteLoaderPlugins)）
+  Available in survival mode only
 
-## 指令 Command
+- 允许玩家自由开关
+  Allow players to switch freely
+
+- 对接LLMoney（[MineBBS](https://www.minebbs.com/resources/llmoney-ll.2385/) [Github](https://github.com/LiteLDev/LiteLoaderPlugins)）
+  Interfacing to LLMoney
+
+## 指令 - Command
 
 `/hcm reload` - 重载部分配置（op及以上）
 `/hcm on [target]` - 开启连锁采集（op及控制台可使用目标选择器target）
 `/hcm off [target]` - 关闭连锁采集（op及控制台可使用目标选择器target）
 
-## 配置文件 Config
+## 配置文件 - Config
 
 ### config.json - 插件设置
 
@@ -158,6 +167,6 @@ Bugs are unavoidable because I'm a beginner, please forgive me.
 }
 ```
 
-## OpenSource - 开源
+## 开源 - OpenSource
 
 [Github](https://github.com/HJH201314/ChainMiner)
