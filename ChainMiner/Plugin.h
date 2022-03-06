@@ -27,4 +27,6 @@ int countTaskList();
 
 int countPos2Id();
 
+int countChainingBlocks();
+
 #endif //CHAINMINER_PLUGIN_H

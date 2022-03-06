@@ -12,6 +12,7 @@
 #include <MC/ItemStack.hpp>
 #include <MC/ItemInstance.hpp>
 #include <MC/ListTag.hpp>
+#include <EventAPI.h>
 
 #include "Plugin.h"
 #include "Utils.h"
@@ -46,6 +47,7 @@ typedef struct minerinfo {
 
 std::unordered_map<int, MinerInfo> task_list;//id,cnt
 std::map<string, int> pos2id;//"dim,x,y,z",id;使用map方便删除失败的数据
+std::unordered_set<string> chaining_blocks;//
 
 extern std::unordered_map<string, BlockInfo> block_list;//方块列表
 extern nlohmann::json config_j;
@@ -66,10 +68,10 @@ void initEventOnPlayerDestroy() {
         if(!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
-
-        //if (chaining_blocks.contains(blp.toString())) {
-        //	return true;//如果是连锁采集的就不处理(pl->playerDestroy()似乎不会触发此事件)
-        //}
+        
+        if (chaining_blocks.contains(getBlockDimAndPos(bli))) {
+        	return true;//如果是连锁采集的就不处理(pl->playerDestroy()似乎不会触发此事件)
+        }
         Block *bl = bli.getBlock();
         string bn = bl->getTypeName();
         //logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
@@ -134,11 +136,11 @@ void initEventOnBlockChange() {
                 BlockPos blp = preBli.getPosition();
                 miner1((*it).second, &blp);//execute
                 ++it;//it points to the gap between two items
-                for (auto i = pos2id.begin(); i != it++; i++) {//rm tasks that aren't executed
+                for (auto i = pos2id.begin(); i != it; i++) {//rm tasks that aren't executed
                     task_list.erase((*i).second);//rm task from task_list
                 }
-                pos2id.erase(pos2id.begin(), it++);//rm all pairs before it
-                logger.debug("{} {}", task_list.size(), pos2id.size());
+                pos2id.erase(pos2id.begin(), it);//rm all pairs before it
+                //logger.debug("{} {}", task_list.size(), pos2id.size());
             }
         }
         return true;
@@ -187,7 +189,7 @@ bool toolDamage(ItemStack *tool, int count) {
         if (tag->contains("Damage")) {
             if (tag->getInt("Damage") + count < tool->getMaxDamage()) {
                 tag->putInt("Damage", tag->getInt("Damage") + count);
-                logger.debug("{}", tag->getInt("Damage"));
+                //logger.debug("{}", tag->getInt("Damage"));
                 //由于首个方块的破坏事件未处理完成,必须手动设置nbt否则会被还原
                 tool->setNbt((CompoundTag *) nbt.get());
                 return true;
@@ -203,6 +205,10 @@ int countTaskList() {
 
 int countPos2Id() {
     return (int)pos2id.size();
+}
+
+int countChainingBlocks() {
+    return (int)chaining_blocks.size();
 }
 
 void miner1(int id, BlockPos *pos, bool sub) {
@@ -225,12 +231,28 @@ void miner1(int id, BlockPos *pos, bool sub) {
                         (task_list[id].enchU > 0 && ud(re) < (100 / (task_list[id].enchU + 1))))
                         task_list[id].cntD++;
 
-                    //break a block
-                    bl->playerDestroy(*task_list[id].pl, newpos);//playerDestroy有掉落物但没有移除掉方块
-                    Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//移除方块
-                    task_list[id].cnt++;
+                    /* break a block */
 
-                    miner1(id, &newpos, true);
+                    auto ev = new Event::PlayerDestroyBlockEvent();
+                    ev->mBlockInstance = Level::getBlockInstance(newpos, task_list[id].dimId);
+                    ev->mPlayer = task_list[id].pl;
+
+                    string dp = getBlockDimAndPos(ev->mBlockInstance);
+                    chaining_blocks.insert(dp);
+
+                    bool res = ev->call();
+                    //logger.debug("pos:{} res:{}", dp, res);
+                    chaining_blocks.erase(dp);
+                    if (!res) {
+                        continue;
+                    }
+                    else {
+                        bl->playerDestroy(*task_list[id].pl, newpos);//playerDestroy here can only get drops
+                        Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//remove the block
+                        task_list[id].cnt++;
+
+                        miner1(id, &newpos, true);
+                    }
                 }
             }
         }

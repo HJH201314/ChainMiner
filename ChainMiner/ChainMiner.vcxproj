@@ -50,7 +50,7 @@
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(SolutionDir)..\SDK\Header\third-party;$(SolutionDir)..\SDK\Header;$(VC_IncludePath);$(WindowsSDK_IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)..\SDK\Lib;$(LibraryPath)</LibraryPath>
-    <OutDir>..\..\..\BDS-Test\plugins</OutDir>
+    <OutDir>..\..\..\BDS-Test\plugins\</OutDir>
     <EnableMicrosoftCodeAnalysis>true</EnableMicrosoftCodeAnalysis>
     <EnableClangTidyCodeAnalysis>false</EnableClangTidyCodeAnalysis>
   </PropertyGroup>
@@ -126,19 +126,26 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Config.h" />
+    <ClInclude Include="Economic.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PlayerSetting.h" />
+    <ClInclude Include="Plugin.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="Economic.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="PlayerSetting.cpp" />
     <ClCompile Include="Plugin.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ChainMiner.rc" />
