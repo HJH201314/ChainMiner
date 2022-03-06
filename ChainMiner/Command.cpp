@@ -2,10 +2,12 @@
 #include "Utils.h"
 #include "Config.h"
 #include "PlayerSetting.h"
+#include "Plugin.h"
 #include <RegCommandAPI.h>
 #include <MC/ItemStack.hpp>
 #include <MC/CompoundTag.hpp>
 #include <MC/Player.hpp>
+#include <third-party/FMT/core.h>
 
 extern nlohmann::json config_j;
 
@@ -15,6 +17,7 @@ class ChainMinerCommand : public Command {
 		reload = 1,
         on = 200,
         off = 201,
+        test = 999
 	} op;
     CommandSelector<Player> player;
     bool player_isSet;
@@ -57,6 +60,12 @@ public:
                 }
                 return;
             }
+            case CMOP::test: {
+                if (ori.getPermissionsLevel() > 0) {
+                    outp.success(fmt::format("{} {}", countTaskList(), countPos2Id()));
+                }
+                return;
+            }
 		default:
 			break;
 		}
@@ -69,7 +78,7 @@ public:
                                   CommandPermissionLevel::Any,
                                   { (CommandFlagValue)0 }, { (CommandFlagValue)0x80 });
 		registry->addEnum<CMOP>("OP1",
-                                { {"reload", CMOP::reload} });
+            { {"reload", CMOP::reload}, {"test", CMOP::test}});
         registry->addEnum<CMOP>("OP2",
                                 { {"on", CMOP::on},
                                   {"off", CMOP::off} });

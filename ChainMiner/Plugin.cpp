@@ -13,14 +13,18 @@
 #include <MC/ItemInstance.hpp>
 #include <MC/ListTag.hpp>
 
+#include "Plugin.h"
 #include "Utils.h"
 #include "Config.h"
 #include "Economic.h"
 #include "PlayerSetting.h"
 
+#include <map>
 #include <unordered_map>
 #include <random>
 #include <utility>
+
+using std::to_string;
 
 Logger logger("ChainMiner");
 
@@ -37,33 +41,21 @@ typedef struct minerinfo {
     int cntD;//需要扣除的耐久
     ItemStack *tool{};//工具
     short enchU;//耐久附魔等级(没有为0)
+    Player* pl;
 } MinerInfo;
 
 std::unordered_map<int, MinerInfo> task_list;//id,cnt
+std::map<string, int> pos2id;//"dim,x,y,z",id;使用map方便删除失败的数据
 
 extern std::unordered_map<string, BlockInfo> block_list;//方块列表
 extern nlohmann::json config_j;
 
 extern bool useMoney;
 
-//声明
-void initEventOnPlayerDestroy();
-
-void registerCommand();
-
-//六向采集
-void miner1(int id, BlockPos *pos, Player *pl, bool sub = false);
-
-//便捷函数
-short getEnchantLevel(std::unique_ptr<CompoundTag> &nbt, short id);
-
-int getDamageFromNbt(std::unique_ptr<CompoundTag> &nbt);
-
-bool toolDamage(ItemStack *tool, int count);
-
 void PluginInit() {
     initConfig();
     initEventOnPlayerDestroy();
+    initEventOnBlockChange();
     registerCommand();
 }
 
@@ -105,7 +97,7 @@ void initEventOnPlayerDestroy() {
 
             //仅当多个时
             if (limit > 1) {
-                //加入临时任务
+                //add task
                 int id = (int) task_list.size() + 1;
                 task_list.insert(std::pair<int, MinerInfo>{
                         id,
@@ -115,16 +107,49 @@ void initEventOnPlayerDestroy() {
                          0,
                          0,
                          tool,
-                         getEnchantLevel(nbt, 17)
+                         getEnchantLevel(nbt, 17),
+                         e.mPlayer
                         }
                 });
+                //add pos2id
+                string pos = getBlockDimAndPos(bli);
+                pos2id.insert({pos,id});
                 //logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
 
-                miner1(id, &blp, e.mPlayer);
+                //miner1(id, &blp, e.mPlayer);
             }
         }
         return true;
     });
+}
+
+void initEventOnBlockChange() {
+    Event::BlockChangedEvent::subscribe([](const Event::BlockChangedEvent& e) {
+        BlockInstance newBli = e.mNewBlockInstance;
+        //block replaced by air
+        if (newBli.getBlock()->getTypeName() == "minecraft:air") {
+            BlockInstance preBli = e.mPreviousBlockInstance;
+            map<string, int>::iterator it = pos2id.find(getBlockDimAndPos(preBli));
+            if (it != pos2id.end()) {//this block has a task
+                BlockPos blp = preBli.getPosition();
+                miner1((*it).second, &blp);//execute
+                ++it;//it points to the gap between two items
+                for (auto i = pos2id.begin(); i != it++; i++) {//rm tasks that aren't executed
+                    task_list.erase((*i).second);//rm task from task_list
+                }
+                pos2id.erase(pos2id.begin(), it++);//rm all pairs before it
+                logger.debug("{} {}", task_list.size(), pos2id.size());
+            }
+        }
+        return true;
+        });
+}
+
+//get a string like "dim,x,y,z"
+string getBlockDimAndPos(BlockInstance& bli) {
+    string pos = to_string(bli.getDimensionId()) + ','
+        + bli.getPosition().toString();
+    return pos;
 }
 
 //get enchant level with nbt && enchid
@@ -172,7 +197,15 @@ bool toolDamage(ItemStack *tool, int count) {
     return false;
 }
 
-void miner1(int id, BlockPos *pos, Player *pl, bool sub) {
+int countTaskList() {
+    return (int)task_list.size();
+}
+
+int countPos2Id() {
+    return (int)pos2id.size();
+}
+
+void miner1(int id, BlockPos *pos, bool sub) {
     if (task_list[id].cnt < task_list[id].limit) {
         int i, j;
         for (i = 0; i < 3; i++) {
@@ -193,11 +226,11 @@ void miner1(int id, BlockPos *pos, Player *pl, bool sub) {
                         task_list[id].cntD++;
 
                     //break a block
-                    bl->playerDestroy(*pl, newpos);//playerDestroy有掉落物但没有移除掉方块
+                    bl->playerDestroy(*task_list[id].pl, newpos);//playerDestroy有掉落物但没有移除掉方块
                     Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//移除方块
                     task_list[id].cnt++;
 
-                    miner1(id, &newpos, pl, true);
+                    miner1(id, &newpos, true);
                 }
             }
         }
@@ -205,21 +238,22 @@ void miner1(int id, BlockPos *pos, Player *pl, bool sub) {
     ////超过限制数量/挖完了/没有相同方块
     end:
     if (!sub) {//是入口miner
-        if(task_list[id].cnt > 0) {
+        MinerInfo mi = task_list[id];
+        if(mi.cnt > 0) {
             //减少耐久
-            toolDamage(task_list[id].tool, task_list[id].cntD);
+            toolDamage(mi.tool, mi.cntD);
             //手动给玩家替换工具
-            pl->refreshInventory();
+            mi.pl->refreshInventory();
             string msg = config_j["msg"]["mine.success"];
-            msg = s_replace(msg,"%Count%",std::to_string(task_list[id].cnt));
+            msg = s_replace(msg,"%Count%",std::to_string(mi.cnt));
             if (useMoney) {
-                long long cost = block_list[task_list[id].name].cost * (task_list[id].cnt - 1);//有一个时自己挖的
-                Economic::reduceMoney(pl->getXuid(), cost);
+                long long cost = block_list[mi.name].cost * (mi.cnt - 1);//有一个时自己挖的
+                Economic::reduceMoney(mi.pl->getXuid(), cost);
                 msg += config_j["msg"]["money.use"];
                 msg = s_replace(msg,"%Cost%",std::to_string(cost));
-                msg = s_replace(msg,"%Remain%",std::to_string(Economic::getMoney(pl->getXuid())));
+                msg = s_replace(msg,"%Remain%",std::to_string(Economic::getMoney(mi.pl->getXuid())));
             }
-            pl->sendTextPacket(msg);
+            mi.pl->sendTextPacket(msg);
         }
         task_list.erase(id);
     }

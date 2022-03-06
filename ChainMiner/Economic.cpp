@@ -1,3 +1,4 @@
+#include "pch.h"
 #include "Economic.h"
 #include <LLAPI.h>
 #include <LoggerAPI.h>
