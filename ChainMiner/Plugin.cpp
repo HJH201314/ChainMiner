@@ -20,7 +20,7 @@
 #include "Economic.h"
 #include "PlayerSetting.h"
 
-#include <map>
+#include <tessil/ordered_map.h>
 #include <unordered_map>
 #include <random>
 #include <utility>
@@ -46,7 +46,7 @@ typedef struct minerinfo {
 } MinerInfo;
 
 std::unordered_map<int, MinerInfo> task_list;//id,cnt
-std::map<string, int> pos2id;//"dim,x,y,z",id;使用map方便删除失败的数据
+tsl::ordered_map<string, int> pos2id;//"dim,x,y,z",id;使用顺序表方便删除失败的数据
 std::unordered_set<string> chaining_blocks;//
 
 extern std::unordered_map<string, BlockInfo> block_list;//方块列表
@@ -69,7 +69,7 @@ void initEventOnPlayerDestroy() {
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
         
-        if (chaining_blocks.contains(getBlockDimAndPos(bli))) {
+        if (chaining_blocks.find(getBlockDimAndPos(bli)) != chaining_blocks.end()) {
         	return true;//如果是连锁采集的就不处理(pl->playerDestroy()似乎不会触发此事件)
         }
         Block *bl = bli.getBlock();
@@ -80,7 +80,7 @@ void initEventOnPlayerDestroy() {
 
             ItemStack *tool = (ItemStack *) &e.mPlayer->getCarriedItem();
             string toolType = tool->getTypeName();
-            logger.info("{}", toolType);
+            //logger.info("{}", toolType);
             auto &material = bl->getMaterial();
 
             //判断是否含有精准采集
@@ -89,7 +89,7 @@ void initEventOnPlayerDestroy() {
             bool hasSilkTouch = getEnchantLevel(nbt, 16);
 
             //如果该工具无法挖掘就结束
-            bool canThisToolChain = ((*r).second.tools.size() == 0 || v_contains((*r).second.tools, toolType) || v_contains((*r).second.tools, *(new string("")))) && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
+            bool canThisToolChain = ((*r).second.tools.empty() || v_contains((*r).second.tools, toolType) || v_contains((*r).second.tools, *(new string("")))) && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
             if (!canThisToolChain) return true;
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());
@@ -133,7 +133,7 @@ void initEventOnBlockChange() {
         //block replaced by air
         if (newBli.getBlock()->getTypeName() == "minecraft:air") {
             BlockInstance preBli = e.mPreviousBlockInstance;
-            map<string, int>::iterator it = pos2id.find(getBlockDimAndPos(preBli));
+            auto it = pos2id.find(getBlockDimAndPos(preBli));
             if (it != pos2id.end()) {//this block has a task
                 BlockPos blp = preBli.getPosition();
                 miner1((*it).second, &blp);//execute
