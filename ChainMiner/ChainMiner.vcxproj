@@ -132,7 +132,6 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
     <ClInclude Include="PlayerSetting.h" />
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="resource.h" />
-    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Command.cpp" />
@@ -145,7 +144,7 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
     </ClCompile>
     <ClCompile Include="PlayerSetting.cpp" />
     <ClCompile Include="Plugin.cpp" />
-    <ClCompile Include="Utils.cpp" />
+    <ClCompile Include="Utils.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ChainMiner.rc" />

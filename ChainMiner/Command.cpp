@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Utils.h"
+#include "Utils.hpp"
 #include "Config.h"
 #include "PlayerSetting.h"
 #include "Plugin.h"

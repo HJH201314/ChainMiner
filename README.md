@@ -17,6 +17,9 @@ Bugs are unavoidable because I'm a beginner, please forgive me.
 - 工具耐久耗尽保护
   Tool durability depletion protection
 
+- 兼容领地插件
+  Compatible with any land plugin
+
 - 仅在生存模式下可使用连锁
   Available in survival mode only
 

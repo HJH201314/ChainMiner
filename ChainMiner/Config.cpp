@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
-#include "Config.h"
 #include "Economic.h"
 #include "PlayerSetting.h"
+#include "Config.h"
 
 #define CONFIG_FILE "plugins/ChainMiner/config.json"
 #define DEFAULT_CONFIG 
@@ -39,7 +39,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 1
+#define CURRENT_CONFIG_VERSION 5
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -49,9 +49,16 @@ void readConfig() {
     }
     configFile >> config_j;
     configFile.close();
+    //update config
+    if (config_j["version"] < CURRENT_CONFIG_VERSION) {
+        updateConfig();
+    }
     //方块列表
     for (auto &el: config_j["blocks"].items()) {
         block_list[el.key()] = {el.value()["limit"], el.value()["cost"]};
+        if (el.value().find("tools") != el.value().end()) {//工具列表
+            block_list[el.key()].tools = el.value()["tools"].get<std::vector<string>>();
+        }
     }
     //money
     if (!config_j["money"]) {
@@ -69,12 +76,37 @@ void readConfig() {
 }
 
 void updateConfig() {
-
+    logger.info("更新配置文件...");
+    json json_new = getDefaultConfig();
+    json_new.merge_patch(config_j);//将已有配置合并到默认配置，避免被覆盖
+    json_new["version"] = CURRENT_CONFIG_VERSION;
+    std::ofstream configFile(CONFIG_FILE);
+    if (!configFile.is_open()) {
+        logger.warn("Failed to open file: " CONFIG_FILE);
+        return;
+    }
+    configFile << json_new.dump(4);
+    //std::cout << std::setw(4) << json_new << std::endl;
+    configFile.close();
+    config_j.merge_patch(json_new);//最后再把配置合并回去
 }
 
 #define DEFAULT_PARAMS {{"limit",256},{"cost",0}}
+#define DEFAULT_PARAMS_LOG {{"limit",256},{"cost",0},{"tools",{"minecraft:wooden_axe","minecraft:stone_axe","minecraft:iron_axe","minecraft:diamond_axe","minecraft:golden_axe","minecraft:netherite_axe"}}}
 
 void writeDefaultConfig() {
+    json j = getDefaultConfig();
+    std::ofstream configFile(CONFIG_FILE);
+    if (!configFile.is_open()) {
+        logger.warn("Failed to open file: " CONFIG_FILE);
+        return;
+    }
+    configFile << j.dump(4);
+    configFile.close();
+    readConfig();
+}
+
+json getDefaultConfig() {
     json j = {
             {"version", CURRENT_CONFIG_VERSION},//版本
             {"command", "hcm"},//指令
@@ -89,10 +121,10 @@ void writeDefaultConfig() {
             {"blocks注释2", "cost表示每连锁采集一个该种方块消耗的金钱,limit表示连锁采集的最大数值."},
             {"blocks注释3", "最大数值几百已经很多了,调到几千玩家可以用来崩服."},
             {"blocks", {
-                    {"minecraft:log", DEFAULT_PARAMS},//原木
-                    {"minecraft:log2", DEFAULT_PARAMS},//原木
-                    {"minecraft:crimson_stem", DEFAULT_PARAMS},//原木
-                    {"minecraft:warped_stem", DEFAULT_PARAMS},//原木
+                    {"minecraft:log", DEFAULT_PARAMS_LOG},//原木
+                    {"minecraft:log2", DEFAULT_PARAMS_LOG},//原木
+                    {"minecraft:crimson_stem", DEFAULT_PARAMS_LOG},//原木
+                    {"minecraft:warped_stem", DEFAULT_PARAMS_LOG},//原木
                     {"minecraft:iron_ore", DEFAULT_PARAMS},//铁矿
                     {"minecraft:gold_ore", DEFAULT_PARAMS},//金矿
                     {"minecraft:diamond_ore", DEFAULT_PARAMS},//钻石矿
@@ -124,12 +156,5 @@ void writeDefaultConfig() {
                     {"switch.off注释", "执行指令/hcm off后的提示"},
             }}
     };
-    std::ofstream configFile(CONFIG_FILE);
-    if (!configFile.is_open()) {
-        logger.warn("Failed to open file: " CONFIG_FILE);
-        return;
-    }
-    configFile << j.dump(4);
-    configFile.close();
-    readConfig();
+    return j;
 }

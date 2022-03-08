@@ -14,8 +14,8 @@
 #include <MC/ListTag.hpp>
 #include <EventAPI.h>
 
+#include "Utils.hpp"
 #include "Plugin.h"
-#include "Utils.h"
 #include "Config.h"
 #include "Economic.h"
 #include "PlayerSetting.h"
@@ -79,6 +79,8 @@ void initEventOnPlayerDestroy() {
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
 
             ItemStack *tool = (ItemStack *) &e.mPlayer->getCarriedItem();
+            string toolType = tool->getTypeName();
+            logger.info("{}", toolType);
             auto &material = bl->getMaterial();
 
             //判断是否含有精准采集
@@ -87,7 +89,7 @@ void initEventOnPlayerDestroy() {
             bool hasSilkTouch = getEnchantLevel(nbt, 16);
 
             //如果该工具无法挖掘就结束
-            bool canThisToolChain = (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
+            bool canThisToolChain = ((*r).second.tools.size() == 0 || v_contains((*r).second.tools, toolType) || v_contains((*r).second.tools, *(new string("")))) && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
             if (!canThisToolChain) return true;
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());

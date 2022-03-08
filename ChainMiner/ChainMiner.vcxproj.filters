@@ -33,9 +33,6 @@
     <ClInclude Include="PlayerSetting.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="Utils.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="Plugin.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -62,8 +59,8 @@
     <ClCompile Include="PlayerSetting.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="Utils.cpp">
-      <Filter>源文件</Filter>
+    <ClCompile Include="Utils.hpp">
+      <Filter>头文件</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
