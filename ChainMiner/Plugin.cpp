@@ -89,7 +89,7 @@ void initEventOnPlayerDestroy() {
             bool hasSilkTouch = getEnchantLevel(nbt, 16);
 
             //如果该工具无法挖掘就结束
-            bool canThisToolChain = ((*r).second.tools.empty() || v_contains((*r).second.tools, toolType) || v_contains((*r).second.tools, *(new string("")))) && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
+            bool canThisToolChain = ((*r).second.tools.empty() || v_contains((*r).second.tools, toolType) || v_contains((*r).second.tools, string(""))) && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
             if (!canThisToolChain) return true;
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());

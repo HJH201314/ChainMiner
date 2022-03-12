@@ -21,7 +21,7 @@ inline string s_replace(string strSrc,
 }
 
 template <typename T>
-inline bool v_contains(vector<T>& v, T& f) {
+inline bool v_contains(vector<T>& v, const T f) {
     for (auto it = v.begin(); it != v.end(); it++) {
         if (*it == f) return true;
     }
