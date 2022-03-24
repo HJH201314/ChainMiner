@@ -62,7 +62,7 @@ public:
             }
             case CMOP::test: {
                 if (ori.getPermissionsLevel() > 0) {
-                    outp.success(fmt::format("{} {} {}", countTaskList(), countPos2Id(), countChainingBlocks()));
+                    outp.success(fmt::format("{} {}", countTaskList()/*, countPos2Id()*/, countChainingBlocks()));
                 }
                 return;
             }

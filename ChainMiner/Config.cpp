@@ -39,7 +39,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 5
+#define CURRENT_CONFIG_VERSION 7
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -55,9 +55,21 @@ void readConfig() {
     }
     //方块列表
     for (auto &el: config_j["blocks"].items()) {
-        block_list[el.key()] = {el.value()["limit"], el.value()["cost"]};
+        block_list[el.key()] = {256, 0, false};
+        if (el.value().contains("limit")) {
+            block_list[el.key()].limit = el.value()["limit"];
+        } else logger.warn("{} in config.json doesn't have element \"limit\", Default: 256.", el.key());
+        if (el.value().contains("cost")) {
+            block_list[el.key()].cost = el.value()["cost"];
+        } else logger.warn("{} in config.json doesn't have element \"cost\", Default: 0.", el.key());
         if (el.value().find("tools") != el.value().end()) {//工具列表
             block_list[el.key()].tools = el.value()["tools"].get<std::vector<string>>();
+        }
+        if (el.value().find("similar") != el.value().end()) {//同类方块
+            block_list[el.key()].similar = el.value()["similar"].get<std::vector<string>>();
+        }
+        if (el.value().contains("SilkTouch")) {
+            block_list[el.key()].enchSilkTouch = int(el.value()["SilkTouch"]);
         }
     }
     //money
@@ -91,8 +103,8 @@ void updateConfig() {
     config_j.merge_patch(json_new);//最后再把配置合并回去
 }
 
-#define DEFAULT_PARAMS {{"limit",256},{"cost",0}}
-#define DEFAULT_PARAMS_LOG {{"limit",256},{"cost",0},{"tools",{"minecraft:wooden_axe","minecraft:stone_axe","minecraft:iron_axe","minecraft:diamond_axe","minecraft:golden_axe","minecraft:netherite_axe"}}}
+#define DEFAULT_PARAMS {"limit",256},{"cost",0}
+#define DEFAULT_PARAMS_LOG {{"limit",256},{"cost",0},{"SilkTouch",2},{"tools",{"minecraft:wooden_axe","minecraft:stone_axe","minecraft:iron_axe","minecraft:diamond_axe","minecraft:golden_axe","minecraft:netherite_axe"}}}
 
 void writeDefaultConfig() {
     json j = getDefaultConfig();
@@ -125,25 +137,25 @@ json getDefaultConfig() {
                     {"minecraft:log2", DEFAULT_PARAMS_LOG},//原木
                     {"minecraft:crimson_stem", DEFAULT_PARAMS_LOG},//原木
                     {"minecraft:warped_stem", DEFAULT_PARAMS_LOG},//原木
-                    {"minecraft:iron_ore", DEFAULT_PARAMS},//铁矿
-                    {"minecraft:gold_ore", DEFAULT_PARAMS},//金矿
-                    {"minecraft:diamond_ore", DEFAULT_PARAMS},//钻石矿
-                    {"minecraft:lapis_ore", DEFAULT_PARAMS},//青金石矿
-                    {"minecraft:redstone_ore", DEFAULT_PARAMS},//红石矿
-                    {"minecraft:coal_ore", DEFAULT_PARAMS},//煤矿
-                    {"minecraft:copper_ore", DEFAULT_PARAMS},//铜矿
-                    {"minecraft:emerald_ore", DEFAULT_PARAMS},//绿宝石矿
-                    {"minecraft:quartz_ore", DEFAULT_PARAMS},//石英矿
-                    {"minecraft:deepslate_copper_ore", DEFAULT_PARAMS},//深层铜矿
-                    {"minecraft:nether_gold_ore", DEFAULT_PARAMS},//下界金矿
-                    {"minecraft:ancient_debris", DEFAULT_PARAMS},//下界残骸
-                    {"minecraft:deepslate_iron_ore", DEFAULT_PARAMS},//深层铁矿
-                    {"minecraft:deepslate_gold_ore", DEFAULT_PARAMS},//深层金矿
-                    {"minecraft:deepslate_diamond_ore", DEFAULT_PARAMS},//深层钻石矿
-                    {"minecraft:deepslate_lapis_ore", DEFAULT_PARAMS},//深层青金石矿
-                    {"minecraft:deepslate_redstone_ore", DEFAULT_PARAMS},//深层红石矿
-                    {"minecraft:deepslate_emerald_ore", DEFAULT_PARAMS},//深层绿宝石矿
-                    {"minecraft:deepslate_coal_ore", DEFAULT_PARAMS}//深层煤矿
+                    {"minecraft:quartz_ore", {DEFAULT_PARAMS}},//石英矿
+                    {"minecraft:nether_gold_ore", {DEFAULT_PARAMS}},//下界金矿
+                    {"minecraft:ancient_debris", {DEFAULT_PARAMS}},//下界残骸
+                    {"minecraft:iron_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_iron_ore"}}}},//铁矿
+                    {"minecraft:gold_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_gold_ore"}}}},//金矿
+                    {"minecraft:diamond_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_diamond_ore"}}}},//钻石矿
+                    {"minecraft:lapis_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_lapis_ore"}}}},//青金石矿
+                    {"minecraft:coal_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_coal_ore"}}}},//煤矿
+                    {"minecraft:copper_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_copper_ore"}}}},//铜矿
+                    {"minecraft:emerald_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:deepslate_emerald_ore"}}}},//绿宝石矿
+                    {"minecraft:lit_redstone_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:lit_deepslate_redstone_ore","minecraft:redstone_ore","minecraft:deepslate_redstone_ore"}}}},//红石矿
+                    {"minecraft:lit_deepslate_redstone_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:lit_redstone_ore","minecraft:redstone_ore","minecraft:deepslate_redstone_ore"}}}},//深层红石矿
+                    {"minecraft:deepslate_copper_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:copper_ore"}}}},//深层铜矿
+                    {"minecraft:deepslate_iron_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:iron_ore"}}}},//深层铁矿
+                    {"minecraft:deepslate_gold_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:gold_ore"}}}},//深层金矿
+                    {"minecraft:deepslate_diamond_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:diamond_ore"}}}},//深层钻石矿
+                    {"minecraft:deepslate_lapis_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:lapis_ore"}}}},//深层青金石矿
+                    {"minecraft:deepslate_emerald_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:emerald_ore"}}}},//深层绿宝石矿
+                    {"minecraft:deepslate_coal_ore", {DEFAULT_PARAMS,{"similar",{"minecraft:coal_ore"}}}}//深层煤矿
             }},
             {"msg", {
                     {"mine.success", "§a连锁采集 §e%Count% §a个方块."},

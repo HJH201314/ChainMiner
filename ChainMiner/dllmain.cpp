@@ -10,7 +10,7 @@
 #define PLUGIN_INTRO "A plugin enables players to mine quicker."
 #define PLUGIN_VER_MAJAR 0
 #define PLUGIN_VER_MINOR 1
-#define PLUGIN_VER_REVISION 1
+#define PLUGIN_VER_REVISION 3
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {

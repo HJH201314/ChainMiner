@@ -5,7 +5,7 @@
 //init
 void initEventOnPlayerDestroy();
 
-void initEventOnBlockChange();
+//void initEventOnBlockChange();
 
 void registerCommand();
 
@@ -21,11 +21,11 @@ short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id);
 
 int getDamageFromNbt(std::unique_ptr<CompoundTag>& nbt);
 
-bool toolDamage(ItemStack* tool, int count);
+bool toolDamage(ItemStack& tool, int count);
 
 int countTaskList();
 
-int countPos2Id();
+//int countPos2Id();
 
 int countChainingBlocks();
 

@@ -40,13 +40,12 @@ typedef struct minerinfo {
     int limit;//最大挖掘数量
     int cnt;//已挖掘数量
     int cntD;//需要扣除的耐久
-    ItemStack *tool{};//工具
+    ItemStack *tool;//工具
     short enchU;//耐久附魔等级(没有为0)
     Player* pl;
 } MinerInfo;
 
 std::unordered_map<int, MinerInfo> task_list;//id,cnt
-tsl::ordered_map<string, int> pos2id;//"dim,x,y,z",id;使用顺序表方便删除失败的数据
 std::unordered_set<string> chaining_blocks;//
 
 extern std::unordered_map<string, BlockInfo> block_list;//方块列表
@@ -57,7 +56,7 @@ extern bool useMoney;
 void PluginInit() {
     initConfig();
     initEventOnPlayerDestroy();
-    initEventOnBlockChange();
+    // initEventOnBlockChange();
     registerCommand();
 }
 
@@ -89,7 +88,16 @@ void initEventOnPlayerDestroy() {
             bool hasSilkTouch = getEnchantLevel(nbt, 16);
 
             //如果该工具无法挖掘就结束
-            bool canThisToolChain = ((*r).second.tools.empty() || v_contains((*r).second.tools, toolType) || v_contains((*r).second.tools, string(""))) && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) && !hasSilkTouch;
+            bool canThisToolChain = (
+                r->second.tools.empty() //没有设置指定工具
+                || v_contains(r->second.tools, toolType) //使用了指定工具
+                || v_contains(r->second.tools, string("")) //允许使用手挖掘
+                )
+                && (material.isAlwaysDestroyable() || tool->canDestroySpecial(*bl)) //可挖掘
+                && ((r->second.enchSilkTouch == 1 && hasSilkTouch) //仅精准采集工具
+                    || (r->second.enchSilkTouch == 0 && !hasSilkTouch) //禁止精准采集工具
+                    || r->second.enchSilkTouch == 2); //不论是否精准采集
+                //&& getDamageFromNbt(nbt) > 0; //无损坏的工具不能触发
             if (!canThisToolChain) return true;
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());
@@ -117,36 +125,13 @@ void initEventOnPlayerDestroy() {
                 });
                 //add pos2id
                 string pos = getBlockDimAndPos(bli);
-                pos2id.insert({pos,id});
                 //logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
 
-                //miner1(id, &blp, e.mPlayer);
+                miner1(id, &blp, false);
             }
         }
         return true;
     });
-}
-
-void initEventOnBlockChange() {
-    Event::BlockChangedEvent::subscribe([](const Event::BlockChangedEvent& e) {
-        BlockInstance newBli = e.mNewBlockInstance;
-        //block replaced by air
-        if (newBli.getBlock()->getTypeName() == "minecraft:air") {
-            BlockInstance preBli = e.mPreviousBlockInstance;
-            auto it = pos2id.find(getBlockDimAndPos(preBli));
-            if (it != pos2id.end()) {//this block has a task
-                BlockPos blp = preBli.getPosition();
-                miner1((*it).second, &blp);//execute
-                ++it;//it points to the gap between two items
-                for (auto i = pos2id.begin(); i != it; i++) {//rm tasks that aren't executed
-                    task_list.erase((*i).second);//rm task from task_list
-                }
-                pos2id.erase(pos2id.begin(), it);//rm all pairs before it
-                //logger.debug("{} {}", task_list.size(), pos2id.size());
-            }
-        }
-        return true;
-        });
 }
 
 //get a string like "dim,x,y,z"
@@ -181,32 +166,45 @@ int getDamageFromNbt(std::unique_ptr<CompoundTag> &nbt) {
             return tag->getInt("Damage");
         }
     }
+    /*else {
+        logger.debug("no tag:{}", nbt->toSNBT());
+    }*/
     return 0;
 }
 
-bool toolDamage(ItemStack *tool, int count) {
-    auto nbt = tool->getNbt();
+bool toolDamage(ItemStack &tool, int count) {
+    auto nbt = tool.getNbt();
+    //logger.debug("before:{}", nbt->toSNBT());
     if (nbt->contains("tag")) {//必须判断否则会报错
         auto tag = nbt->getCompound("tag");
         if (tag->contains("Damage")) {
-            if (tag->getInt("Damage") + count < tool->getMaxDamage()) {
+            if (tag->getInt("Damage") + count < tool.getMaxDamage()) {
                 tag->putInt("Damage", tag->getInt("Damage") + count);
                 //logger.debug("{}", tag->getInt("Damage"));
-                //由于首个方块的破坏事件未处理完成,必须手动设置nbt否则会被还原
-                tool->setNbt((CompoundTag *) nbt.get());
+
+                tool.setNbt(nbt.get());
+                //logger.debug("after:{}", tool.getNbt()->toSNBT());
                 return true;
             }
+            else return false;
+        }
+        else { //没有Damage
+            tag->putInt("Damage", count);
+            tool.setNbt(nbt.get());
         }
     }
-    return false;
+    else { //没有tag
+        auto compoundTag = CompoundTag::create();
+        compoundTag->putInt("Damage", count);
+        nbt->putCompound("tag", std::unique_ptr<CompoundTag>(compoundTag.release()));
+        tool.setNbt(nbt.get());
+        //logger.debug("new damage:{}", nbt->toSNBT());
+    }
+    return true;
 }
 
 int countTaskList() {
     return (int)task_list.size();
-}
-
-int countPos2Id() {
-    return (int)pos2id.size();
 }
 
 int countChainingBlocks() {
@@ -223,9 +221,11 @@ void miner1(int id, BlockPos *pos, bool sub) {
                         (i == 0 ? (j == 0 ? -1 : 1) : 0),
                         (i == 1 ? (j == 0 ? -1 : 1) : 0),
                         (i == 2 ? (j == 0 ? -1 : 1) : 0)
-                );//生成六种情况
+                );//Gen 6 possibilities
                 Block *bl = Level::getBlock(newpos, task_list[id].dimId);
-                if (bl->getTypeName() == task_list[id].name) {
+                auto r = block_list.find(task_list[id].name);
+                //The same type of block or a similar block
+                if (bl->getTypeName() == task_list[id].name || v_contains(r->second.similar, bl->getTypeName())) {
                     //logger.debug("{} can be mine", newpos.toString());
 
                     //累计耐久损失
@@ -234,7 +234,6 @@ void miner1(int id, BlockPos *pos, bool sub) {
                         task_list[id].cntD++;
 
                     /* break a block */
-
                     auto ev = new Event::PlayerDestroyBlockEvent();
                     ev->mBlockInstance = Level::getBlockInstance(newpos, task_list[id].dimId);
                     ev->mPlayer = task_list[id].pl;
@@ -265,20 +264,26 @@ void miner1(int id, BlockPos *pos, bool sub) {
         MinerInfo mi = task_list[id];
         if(mi.cnt > 0) {
             //减少耐久
-            toolDamage(mi.tool, mi.cntD);
+            ItemStack tool = mi.pl->getCarriedItem();
+            toolDamage(tool, mi.cntD);
             //手动给玩家替换工具
+            //mi.pl->refreshInventory();
+            mi.pl->setCarriedItem(tool);
             mi.pl->refreshInventory();
             string msg = config_j["msg"]["mine.success"];
             msg = s_replace(msg,"%Count%",std::to_string(mi.cnt));
             if (useMoney) {
-                long long cost = block_list[mi.name].cost * (mi.cnt - 1);//有一个时自己挖的
-                Economic::reduceMoney(mi.pl->getXuid(), cost);
-                msg += config_j["msg"]["money.use"];
-                msg = s_replace(msg,"%Cost%",std::to_string(cost));
-                msg = s_replace(msg,"%Remain%",std::to_string(Economic::getMoney(mi.pl->getXuid())));
+                long long cost = block_list[mi.name].cost * (mi.cnt - 1);//有一个是自己挖的
+                if (cost > 0) {
+                    Economic::reduceMoney(mi.pl->getXuid(), cost);
+                    msg += config_j["msg"]["money.use"];
+                    msg = s_replace(msg, "%Cost%", std::to_string(cost));
+                    msg = s_replace(msg, "%Remain%", std::to_string(Economic::getMoney(mi.pl->getXuid())));
+                }
             }
             mi.pl->sendTextPacket(msg);
         }
+        //logger.debug("id:{} cnt:{} cntD:{} enchU:{} limit:{}", id, mi.cnt, mi.cntD, mi.enchU, mi.limit);
         task_list.erase(id);
     }
     //logger.debug("task {} end.", id);
