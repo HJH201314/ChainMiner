@@ -28,4 +28,19 @@ inline bool v_contains(vector<T>& v, const T f) {
     return false;
 }
 
+template <typename T>
+inline int v_remove(vector<T>& v, const T f) {
+    int count = 0;
+    auto it = v.begin();
+    while (it != v.end()) {
+        if (*it == f) {
+            it = v.erase(it);
+        }
+        else {
+            it++;
+        }
+    }
+    return false;
+}
+
 #endif //CHAINMINER_UTILS_HPP

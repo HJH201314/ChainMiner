@@ -125,11 +125,13 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BlockUtil.hpp" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="Economic.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="Global.h" />
     <ClInclude Include="pch.h" />
-    <ClInclude Include="PlayerSetting.h" />
+    <ClInclude Include="PlayerSetting.hpp" />
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>
@@ -142,7 +144,6 @@ copy /Y $(TargetPath) $(LocalDebuggerWorkingDirectory)\plugins\
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="PlayerSetting.cpp" />
     <ClCompile Include="Plugin.cpp" />
     <ClCompile Include="Utils.hpp" />
   </ItemGroup>
