@@ -40,12 +40,30 @@ Disable one's ChainMiner (op can use [target])
 
 ## 配置文件 - Config
 
-### config.json - 插件设置
+### `config.json` - 插件设置
 
-cost : 每连锁一个该方块消耗的金钱
-limit : 最大连锁采集数量
-tools : 触发连锁采集必须使用的工具
-similar : 可以一同连锁的同类方块
+cost: 每连锁一个该方块消耗的金钱
+
+limit: 最大连锁采集数量
+
+tools: 触发连锁采集必须使用的工具
+
+similar: 可以一同连锁的同类方块
+
+SilkTouch: （注意S和T要大写）
+
+- `0` 为默认值，表示附有精准采集的工具无法触发连锁（适用于矿物等）
+- `1` 表示当且仅当工具附有精准采集时才能触发连锁（适用于蓝冰等）
+- `2` 表示无论工具是否附有精准采集都能触发连锁（适用于原木等）
+  ```json
+  "minecraft:blue_ice": {
+    "cost": 0,
+    "limit": 0,
+    "SilkTouch": 1
+  }
+  ```
+
+#### 配置文件样例
 
 ```json
 {
@@ -253,11 +271,11 @@ similar : 可以一同连锁的同类方块
         "default": true,
         "switch.default注释": "玩家没有进行设置时的默认开关,允许布尔true/false"
     },
-    "version": 6
+    "version": 7
 }
 ```
 
-### player.json - 玩家数据
+### `player.json` - 玩家数据
 
 ```json
 {
