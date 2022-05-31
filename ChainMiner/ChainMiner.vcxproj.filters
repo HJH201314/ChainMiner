@@ -30,10 +30,16 @@
     <ClInclude Include="Economic.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="PlayerSetting.h">
+    <ClInclude Include="PlayerSetting.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="Plugin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BlockUtil.hpp">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
@@ -54,9 +60,6 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Economic.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="PlayerSetting.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="Utils.hpp">

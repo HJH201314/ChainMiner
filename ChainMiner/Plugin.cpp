@@ -12,13 +12,14 @@
 #include <MC/ItemStack.hpp>
 #include <MC/ItemInstance.hpp>
 #include <MC/ListTag.hpp>
+#include <MC/HashedString.hpp>
 #include <EventAPI.h>
 
 #include "Utils.hpp"
 #include "Plugin.h"
+#include "Global.h"
 #include "Config.h"
 #include "Economic.h"
-#include "PlayerSetting.h"
 
 #include <tessil/ordered_map.h>
 #include <unordered_map>
@@ -62,7 +63,6 @@ void PluginInit() {
 
 void initEventOnPlayerDestroy() {
     Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent &e) {
-        extern PlayerSetting playerSetting;
         if(e.mPlayer->getPlayerGameType() != 0) return true;
         if(!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         BlockInstance bli = e.mBlockInstance;
@@ -73,16 +73,18 @@ void initEventOnPlayerDestroy() {
         }
         Block *bl = bli.getBlock();
         string bn = bl->getTypeName();
+        logger.info("{} {} {} {}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant());
         //logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
         auto r = block_list.find(bn);
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
+            if (!playerSetting.getSwitch(e.mPlayer->getXuid(),bn)) return true;//方块被关闭
 
             ItemStack *tool = (ItemStack *) &e.mPlayer->getCarriedItem();
             string toolType = tool->getTypeName();
             //logger.info("{}", toolType);
             auto &material = bl->getMaterial();
 
-            //判断是否含有精准采集
+            //判断是否含有精准采集bl->getName();
             auto nbt = tool->getNbt();
             //logger.debug("{}", nbt->toSNBT());
             bool hasSilkTouch = getEnchantLevel(nbt, 16);
