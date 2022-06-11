@@ -17,6 +17,7 @@ class ChainMinerCommand : public Command {
 private:
     enum CMOP : int {
         reload = 1,
+        help = 2,
         op = 100,
         deop = 101,
         edit = 501,
@@ -35,6 +36,10 @@ public:
                     readConfig();
                     outp.success("§e重载成功!");
                 }
+                return;
+            }
+            case CMOP::help: {
+                outp.success("Not finished yet.");
                 return;
             }
             case CMOP::on: {
@@ -125,7 +130,7 @@ public:
                                   { (CommandFlagValue)0 }, { (CommandFlagValue)0x80 });
         //1 param, operator
 		registry->addEnum<CMOP>("OP1",
-            { {"reload", CMOP::reload}, {"test", CMOP::test}, {"menu", CMOP::menu}, {"edit", CMOP::edit} });
+            { {"reload", CMOP::reload}, {"test", CMOP::test}, {"menu", CMOP::menu}, {"edit", CMOP::edit}, {"help", CMOP::help}});
 		registry->registerOverload<ChainMinerCommand>(
                 config_j["command"],
                 makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional","OP1"));
@@ -174,7 +179,7 @@ void ChainMinerCommand::sendNormalMenu(Player* pl, int page) const {
     int max_page = (block_list.size() - 1) / count_per_page;
     page = (page < max_page ? page : max_page);//取更小的页码->避免空页
     if (count_per_page != -1 && page == -1) page = 0;//当每页数量不为-1时->访问第一页
-    logger.debug("{} {} {} {}", page, max_page, count_per_page, block_list.size());
+    //logger.debug("{} {} {} {}", page, max_page, count_per_page, block_list.size());
     SimpleForm form("连锁采集 - ChainMiner", "选择一项进行开关");
 
     auto it = block_list.begin();
