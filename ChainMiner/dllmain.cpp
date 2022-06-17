@@ -1,21 +1,17 @@
 ﻿// dllmain.cpp : 定义 DLL 应用程序的入口点。
 #include "pch.h"
 #include "LLAPI.h"
+#include "Version.h"
 #pragma comment(lib, "../../SDK/Lib/bedrock_server_api.lib")
 #pragma comment(lib, "../../SDK/Lib/bedrock_server_var.lib")
 #pragma comment(lib, "../../SDK/Lib/SymDBHelper.lib")
 #pragma comment(lib, "../../SDK/Lib/LiteLoader.lib")
 
-#define PLUGIN_NAME "ChainMiner"
-#define PLUGIN_INTRO "A plugin enables players to mine quicker."
-#define PLUGIN_VER_MAJAR 0
-#define PLUGIN_VER_MINOR 2
-#define PLUGIN_VER_REVISION 5
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved) {
     switch (ul_reason_for_call) {
     case DLL_PROCESS_ATTACH:
-        LL::registerPlugin(PLUGIN_NAME, PLUGIN_INTRO, LL::Version(PLUGIN_VER_MAJAR, PLUGIN_VER_MINOR, PLUGIN_VER_REVISION));
+        LL::registerPlugin(PLUGIN_NAME, PLUGIN_INTRODUCTION, LL::Version(PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR, PLUGIN_VERSION_REVISION));
         break;
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
