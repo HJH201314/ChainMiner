@@ -75,9 +75,9 @@ jobs:
         run: |
           mkdir output/
           mkdir output/${{env.PLUGIN_NAME}}/
-          cp -f x64/Release/*.dll output/${{env.PLUGIN_NAME}}/
+          cp -f x64/Release/${{env.PLUGIN_NAME}}.dll output/${{env.PLUGIN_NAME}}/
           mkdir output/PDB/
-          cp -f x64/Release/*.pdb output/PDB/
+          cp -f x64/Release/${{env.PLUGIN_NAME}}.pdb output/PDB/
           # mkdir output/${{env.PLUGIN_NAME}}/${{env.PLUGIN_NAME}}/
           # cp -r Data/* output/${{env.PLUGIN_NAME}}/${{env.PLUGIN_NAME}}/
         shell: bash
