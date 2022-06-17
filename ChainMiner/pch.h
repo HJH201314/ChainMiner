@@ -13,10 +13,10 @@
 #include <Global.h>
 #include <EventAPI.h>
 #include <LoggerAPI.h>
-#include <third-party/rapidjson/rapidjson.h>
-#include <third-party/rapidjson/document.h>
-#include <third-party/rapidjson/writer.h>
-#include <third-party/rapidjson/prettywriter.h>
-#include <third-party-me/nlohmann/json.hpp>
+#include "third-party/rapidjson/rapidjson.h"
+#include "third-party/rapidjson/document.h"
+#include "third-party/rapidjson/writer.h"
+#include "third-party/rapidjson/prettywriter.h"
+#include "third-party/nlohmann/json.hpp"
 
 #endif //PCH_H

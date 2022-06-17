@@ -97,6 +97,7 @@ money_t Economic::getMoney(Player* pl)
     else if (Economic::mode == 2) {
         return Scoreboard::getScore(pl, Economic::sbname);
     }
+    return 0;
 }
 
 bool Economic::setMoney(xuid_t player, money_t money)
