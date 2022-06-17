@@ -119,6 +119,7 @@ bool Economic::setMoney(Player* pl, money_t money)
     else if (Economic::mode == 2) {
         return Scoreboard::setScore(pl, Economic::sbname, int(money));
     }
+    return false;
 }
 
 bool Economic::addMoney(xuid_t player, money_t money)
