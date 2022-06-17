@@ -39,7 +39,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 14
+#define CURRENT_CONFIG_VERSION 15
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -96,7 +96,7 @@ void readConfig() {
         }
         else if (config_j["money"] == "scoreboard") {
             if (config_j["money.sbname"].is_string() && config_j["money.sbname"] != "") {
-                Economic::mode = 1;
+                Economic::mode = 2;
                 Economic::sbname = config_j["money.sbname"];
             }
             else {
@@ -120,7 +120,11 @@ void updateConfig() {
     json_new.merge_patch(config_j);//将已有配置合并到默认配置，避免被覆盖
     if (json_new["version"] < 14) {//14以下才会更新
         json_new["money"] = "llmoney";
-        json_new["money注释"] = "money: llmoney or scoreboard, money.sbname: key of the scoreboard item";
+        json_new["money注释"] = "money: llmoney 或 scoreboard, money.sbname: 记分项名";
+    }
+    if (json_new["version"] < 15) {
+        json_new["msg"]["mine.success注释"] = "成功采集后的消息提示,%Count% - 成功采集的方块数量";
+        json_new["msg"]["money.use注释"] = "消耗金钱后的消息提示,%Cost% - 消耗金钱,%Name% - 金钱名称,%Remain% - 剩余金钱";
     }
     json_new["version"] = CURRENT_CONFIG_VERSION;
     std::ofstream configFile(CONFIG_FILE);
@@ -167,11 +171,13 @@ json getDefaultConfig() {
             {"command", "hcm"},//指令
             {"command注释", "插件的指令名,允许文本,reload无法重载该项"},
             {"money", "llmoney"},//是否使用money
+            {"money.name", "金币"},
             {"money.sbname", "money"},
-            {"money注释", "money: llmoney or scoreboard, money.sbname: key of the scoreboard item"},
+            {"money注释", "money: llmoney 或 scoreboard, money.sbname: 记分项名"},
             {"menu.count_per_page", -1},
             {"switch", {
                     {"default", true},
+                    {"mine.success", true},
                     {"switch.default注释", "玩家没有进行设置时的默认开关,允许布尔true/false"}
             }},
             {"op", json::array({})},
@@ -205,9 +211,9 @@ json getDefaultConfig() {
             }},
             {"msg", {
                     {"mine.success", "§a连锁采集 §e%Count% §a个方块."},
-                    {"mine.success注释", "成功采集后的消息提示,%Count%表示成功采集的方块数量"},
-                    {"money.use", "§b使用了 §e%Cost% §b个金币§c,§b剩余 §e%Remain% §b金币."},
-                    {"money.use注释", "消耗金钱后的消息提示,%Cost%表示消耗的金钱数量,%Remain%表示剩余的金钱数量"},
+                    {"mine.success注释", "成功采集后的消息提示,%Count% - 成功采集的方块数量"},
+                    {"money.use", "§b使用了 §e%Cost% §b个%Name%§c,§b剩余 §e%Remain% §b%Name%."},
+                    {"money.use注释", "消耗金钱后的消息提示,%Cost% - 消耗金钱,%Name% - 金钱名称,%Remain% - 剩余金钱"},
                     {"switch.on", "§c[§6连§e锁§a采§b集§c] §a开启成功！"},
                     {"switch.on注释", "执行指令/hcm on后的提示"},
                     {"switch.off", "§c[§6连§e锁§a采§b集§c] §a关闭成功！"},

@@ -284,9 +284,11 @@ void miner1(int id, BlockPos *pos, bool sub) {
                     msg += config_j["msg"]["money.use"];
                     msg = s_replace(msg, "%Cost%", std::to_string(cost));
                     msg = s_replace(msg, "%Remain%", std::to_string(Economic::getMoney(mi.pl)));
+                    msg = s_replace(msg, "%Name%", config_j["money.name"]);
                 }
             }
-            mi.pl->sendTextPacket(msg);
+            if (config_j["switch"]["mine.success"])
+                mi.pl->sendTextPacket(msg);
         }
         //logger.debug("id:{} cnt:{} cntD:{} enchU:{} limit:{}", id, mi.cnt, mi.cntD, mi.enchU, mi.limit);
         task_list.erase(id);
