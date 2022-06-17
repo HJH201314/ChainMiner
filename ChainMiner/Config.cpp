@@ -11,7 +11,6 @@ using json = nlohmann::json;
 extern Logger logger;
 std::unordered_map<string, BlockInfo> block_list;
 json config_j;//全局储存配置
-bool useMoney = true;
 PlayerSetting playerSetting;//playerSetting的首次初始化
 vector<string> op_list;
 
@@ -40,7 +39,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 13
+#define CURRENT_CONFIG_VERSION 14
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -84,14 +83,26 @@ void readConfig() {
         //logger.debug("{}", 7);
     }
     //money
-    if (!config_j["money"]) {
-        useMoney = false;
-    } else {
-        if(Economic::init()) {
-            useMoney = true;
-        } else {
-            useMoney = false;
-            logger.info("未检测到LLMoney,付费连锁将会失效!");
+    Economic::mode = 0;
+    if (config_j["money"].is_string()) {
+        if (config_j["money"] == "llmoney") {
+            if (Economic::init()) {
+                Economic::mode = 1;
+            }
+            else {
+                Economic::mode = 0;
+                logger.warn("未检测到LLMoney,付费连锁将会失效!");
+            }
+        }
+        else if (config_j["money"] == "scoreboard") {
+            if (config_j["money.sbname"].is_string() && config_j["money.sbname"] != "") {
+                Economic::mode = 1;
+                Economic::sbname = config_j["money.sbname"];
+            }
+            else {
+                Economic::mode = 0;
+                logger.warn("未配置记分板money名称,付费连锁将会失效!");
+            }
         }
     }
     //player_setting
@@ -107,6 +118,10 @@ void updateConfig() {
     logger.info("更新配置文件...");
     json json_new = getDefaultConfig();
     json_new.merge_patch(config_j);//将已有配置合并到默认配置，避免被覆盖
+    if (json_new["version"] < 14) {//14以下才会更新
+        json_new["money"] = "llmoney";
+        json_new["money注释"] = "money: llmoney or scoreboard, money.sbname: key of the scoreboard item";
+    }
     json_new["version"] = CURRENT_CONFIG_VERSION;
     std::ofstream configFile(CONFIG_FILE);
     if (!configFile.is_open()) {
@@ -151,8 +166,9 @@ json getDefaultConfig() {
             {"version", CURRENT_CONFIG_VERSION},//版本
             {"command", "hcm"},//指令
             {"command注释", "插件的指令名,允许文本,reload无法重载该项"},
-            {"money", true},//是否使用money
-            {"money注释", "是否对接LLMoney,允许布尔true/false"},
+            {"money", "llmoney"},//是否使用money
+            {"money.sbname", "money"},
+            {"money注释", "money: llmoney or scoreboard, money.sbname: key of the scoreboard item"},
             {"menu.count_per_page", -1},
             {"switch", {
                     {"default", true},

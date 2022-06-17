@@ -2,7 +2,9 @@
 #include "Economic.h"
 #include <LLAPI.h>
 #include <LoggerAPI.h>
-#include <TranslationAPI.h>
+#include <MC/Scoreboard.hpp>
+#include <MC/Player.hpp>
+#include <MC/Level.hpp>
 #include <string>
 
 extern Logger logger;
@@ -87,6 +89,16 @@ money_t Economic::getMoney(xuid_t player)
     }
 }
 
+money_t Economic::getMoney(Player* pl)
+{
+    if (Economic::mode == 1) {
+        return getMoney(pl->getXuid());
+    }
+    else if (Economic::mode == 2) {
+        return Scoreboard::getScore(pl, Economic::sbname);
+    }
+}
+
 bool Economic::setMoney(xuid_t player, money_t money)
 {
     if (dynamicSymbolsMap.LLMoneySet)
@@ -95,6 +107,16 @@ bool Economic::setMoney(xuid_t player, money_t money)
     {
         logger.error("API money.setMoney have not been loaded!");
         return false;
+    }
+}
+
+bool Economic::setMoney(Player* pl, money_t money)
+{
+    if (Economic::mode == 1) {
+        return setMoney(pl->getXuid(), money);
+    }
+    else if (Economic::mode == 2) {
+        return Scoreboard::setScore(pl, Economic::sbname, int(money));
     }
 }
 
@@ -109,6 +131,17 @@ bool Economic::addMoney(xuid_t player, money_t money)
     }
 }
 
+bool Economic::addMoney(Player* pl, money_t money)
+{
+    if (Economic::mode == 1) {
+        return addMoney(pl->getXuid(), money);
+    }
+    else if (Economic::mode == 2) {
+        return Scoreboard::addScore(pl, Economic::sbname, int(money));
+    }
+    return false;
+}
+
 bool Economic::reduceMoney(xuid_t player, money_t money)
 {
     if (dynamicSymbolsMap.LLMoneyReduce)
@@ -118,6 +151,17 @@ bool Economic::reduceMoney(xuid_t player, money_t money)
         logger.error("API money.reduceMoney have not been loaded!");
         return false;
     }
+}
+
+bool Economic::reduceMoney(Player* pl, money_t money)
+{
+    if (Economic::mode == 1) {
+        return reduceMoney(pl->getXuid(), money);
+    }
+    else if (Economic::mode == 2) {
+        return Scoreboard::reduceScore(pl, Economic::sbname, int(money));
+    }
+    return false;
 }
 
 bool Economic::transMoney(xuid_t player1, xuid_t player2, money_t money, string const& notes)
@@ -155,3 +199,6 @@ bool Economic::clearMoneyHist(int time)
         return false;
     }
 }
+
+int Economic::mode = 0;
+string Economic::sbname = "money";

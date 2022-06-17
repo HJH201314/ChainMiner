@@ -9,6 +9,7 @@
 #include <MC/Actor.hpp>
 #include <MC/Item.hpp>
 #include <MC/Player.hpp>
+#include <MC/SimulatedPlayer.hpp>
 #include <MC/ItemStack.hpp>
 #include <MC/ItemInstance.hpp>
 #include <MC/ListTag.hpp>
@@ -51,8 +52,6 @@ std::unordered_set<string> chaining_blocks;//
 
 extern std::unordered_map<string, BlockInfo> block_list;//方块列表
 extern nlohmann::json config_j;
-
-extern bool useMoney;
 
 void PluginInit() {
     initConfig();
@@ -106,8 +105,8 @@ void initEventOnPlayerDestroy() {
             int limit = block_list[bn].limit;
             if(tool->isDamageableItem())
                 limit = std::min(limit, tool->getMaxDamage() - getDamageFromNbt(nbt) - 1);//留一点耐久,防止炸掉
-            if (useMoney && block_list[bn].cost > 0)
-                limit = std::min(limit, int(Economic::getMoney(e.mPlayer->getXuid()) / block_list[bn].cost));
+            if (Economic::mode > 0 && block_list[bn].cost > 0)
+                limit = std::min(limit, int(Economic::getMoney(e.mPlayer) / block_list[bn].cost));
 
             //仅当多个时
             if (limit > 1) {
@@ -251,7 +250,11 @@ void miner1(int id, BlockPos *pos, bool sub) {
                     }
                     else {
                         bl->playerDestroy(*task_list[id].pl, newpos);//playerDestroy here can only get drops
-                        Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//remove the block
+                        //下面这行不行
+                        //bl->destroy(*Level::getBlockSource(task_list[id].dimId), newpos, task_list[id].pl);
+                        //下面这个方法被注释掉了
+                        //Level::destroyBlock(*Level::getBlockSource(task_list[id].dimId), newpos, false);//remove the block
+                        Level::setBlock(newpos, task_list[id].dimId, "minecraft:air", 0);
                         task_list[id].cnt++;
 
                         miner1(id, &newpos, true);
@@ -274,13 +277,13 @@ void miner1(int id, BlockPos *pos, bool sub) {
             mi.pl->refreshInventory();
             string msg = config_j["msg"]["mine.success"];
             msg = s_replace(msg,"%Count%",std::to_string(mi.cnt));
-            if (useMoney) {
+            if (Economic::mode > 0) {
                 long long cost = block_list[mi.name].cost * (mi.cnt - 1);//有一个是自己挖的
                 if (cost > 0) {
-                    Economic::reduceMoney(mi.pl->getXuid(), cost);
+                    Economic::reduceMoney(mi.pl, cost);
                     msg += config_j["msg"]["money.use"];
                     msg = s_replace(msg, "%Cost%", std::to_string(cost));
-                    msg = s_replace(msg, "%Remain%", std::to_string(Economic::getMoney(mi.pl->getXuid())));
+                    msg = s_replace(msg, "%Remain%", std::to_string(Economic::getMoney(mi.pl)));
                 }
             }
             mi.pl->sendTextPacket(msg);
