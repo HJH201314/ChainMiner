@@ -15,6 +15,8 @@ typedef bool (*LLMoneyCallback)(LLMoneyEvent type, xuid_t from, xuid_t to, money
 class Economic
 {
 public:
+    static int mode;
+    static string sbname;
     static bool init();
 
     static money_t getMoney(xuid_t player);
@@ -24,4 +26,9 @@ public:
     static bool transMoney(xuid_t player1, xuid_t player2, money_t money, string const& notes);
     static std::string getMoneyHist(xuid_t player, int time);
     static bool clearMoneyHist(int time);
+
+    static money_t getMoney(Player* pl);
+    static bool setMoney(Player* pl, money_t money);
+    static bool addMoney(Player* pl, money_t money);
+    static bool reduceMoney(Player* pl, money_t money);
 };
