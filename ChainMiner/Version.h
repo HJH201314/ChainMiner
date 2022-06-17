@@ -6,7 +6,7 @@
 
 // Plugin Information, used in dllmain.cpp for register plugin
 #define PLUGIN_NAME                 "ChainMiner"
-#define PLUGIN_INTRODUCTION         "A plugin enables players to mine quicker."
+#define PLUGIN_INTRODUCTION         "A plugin enables players to gather blocks quicker."
 #define PLUGIN_AUTHOR               "HJH201314"
 #define PLUGIN_VERSION_MAJOR        0
 #define PLUGIN_VERSION_MINOR        2
