@@ -1,4 +1,4 @@
-name: Build Plugin(Publish if tag)
+name: Build Plugin
 
 on: [ workflow_dispatch ]
 
