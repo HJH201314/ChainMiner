@@ -5,13 +5,6 @@ using std::string;
 typedef long long money_t;
 typedef string xuid_t;
 
-enum LLMoneyEvent
-{
-    Set, Add, Reduce, Trans
-};
-typedef bool (*LLMoneyCallback)(LLMoneyEvent type, xuid_t from, xuid_t to, money_t value);
-
-
 class Economic
 {
 public:
