@@ -48,13 +48,7 @@ public:
     FileOpenMode(FileOpenMode const&) = delete;
     FileOpenMode(FileOpenMode const&&) = delete;
 };
-template <typename T0>
-class PathBuffer {
-public:
-    PathBuffer() = delete;
-    PathBuffer(PathBuffer const&) = delete;
-    PathBuffer(PathBuffer const&&) = delete;
-};
+
 struct LevelStorageResult {
     LevelStorageResult() = delete;
     LevelStorageResult(LevelStorageResult const&) = delete;
@@ -78,12 +72,40 @@ public:
     SingleThreadedLock(SingleThreadedLock const&) = delete;
     SingleThreadedLock(SingleThreadedLock const&&) = delete;
 };
-class Path {
+class PathPart
+{
+public:
+    std::string data;
+};
+
+class Path : public PathPart
+{
 public:
     Path() = delete;
     Path(Path const&) = delete;
     Path(Path const&&) = delete;
 };
+
+template <typename T>
+class PathBuffer
+{
+public:
+    PathBuffer() = delete;
+    PathBuffer(PathBuffer const&) = delete;
+    PathBuffer(PathBuffer const&&) = delete;
+	
+    T value;
+    operator T&() noexcept
+    {
+        return value;
+    }
+    operator T const&() const noexcept
+    {
+        return value;
+    }
+};
+
+
 class FilePathManager {
 public:
     FilePathManager() = delete;
@@ -103,6 +125,9 @@ Profile(Profile const&&) = delete;
 enum FileAccessType;
 
 #undef AFTER_EXTRA
+    MCAPI extern char const * RESULT_FAILED_MESSAGE;
+    MCAPI extern char const * RESULT_NOT_IMPLEMENTED_MESSAGE;
+    MCAPI extern char const * RESULT_SUCCEEDED_MESSAGE;
     MCAPI unsigned __int64 operator&(enum Core::DirectoryIterationFlags, enum Core::DirectoryIterationFlags);
     MCAPI enum Core::DirectoryIterationFlags operator|(enum Core::DirectoryIterationFlags, enum Core::DirectoryIterationFlags);
     MCAPI extern class std::shared_ptr<class Core::FileStorageArea> sRootStorageArea;
