@@ -13,6 +13,7 @@
 #include <Global.h>
 #include <EventAPI.h>
 #include <LoggerAPI.h>
+#include <I18nAPI.h>
 #include "third-party/rapidjson/rapidjson.h"
 #include "third-party/rapidjson/document.h"
 #include "third-party/rapidjson/writer.h"
