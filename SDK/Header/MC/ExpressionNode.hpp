@@ -6,13 +6,32 @@
 
 #define BEFORE_EXTRA
 // Include Headers or Declare Types Here
+#include "Actor.hpp"
+#include "HashedString.hpp"
+class MolangInstance {
+public:
+    LIAPI MolangInstance(const string&);
+    LIAPI ~MolangInstance();
+    LIAPI float evalAsFloat(Actor* actor);
+    LIAPI Json ::Value evalAsJson(Actor* actor);
+    LIAPI string getExpressionString();
+    LIAPI bool isInitialized();
+    LIAPI bool isValid();
+    LIAPI bool parse(const string& expressionStr, enum MolangVersion version = (MolangVersion)6,
+                              gsl::span<class HashedString const, -1> v = gsl::span<class HashedString const, -1>(
+                                  {HashedString("default" /*or "world_gen"*/)}));
 
+private:
+    char expression[0xC8]{};
+    // allocate memory for storage of ExpressionNode,from IDA xref of : ExpressionNode
+    // ExpressionNode* expression;
+};
 #undef BEFORE_EXTRA
 
 class ExpressionNode {
 
 #define AFTER_EXTRA
-// Add Member There
+    // Add Member There
 
 #undef AFTER_EXTRA
 
