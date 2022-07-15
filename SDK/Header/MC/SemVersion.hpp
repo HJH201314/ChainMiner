@@ -21,7 +21,9 @@ struct any_version_constructor {
     any_version_constructor(any_version_constructor const&) = delete;
     any_version_constructor(any_version_constructor const&&) = delete;
 };
-
+unsigned short major{}, minor{}, patch{};                 // 0, 2, 4
+std::string pre_release, build_meta, full_version_string; // 8, 40, 72
+bool valid_version{}, any_version{};                      // 104, 105
 #undef AFTER_EXTRA
 
 
@@ -36,6 +38,7 @@ public:
     MCAPI unsigned short getMajor() const;
     MCAPI unsigned short getMinor() const;
     MCAPI unsigned short getPatch() const;
+    MCAPI std::string const & getPreRelease() const;
     MCAPI bool isAnyVersion() const;
     MCAPI bool isValid() const;
     MCAPI bool operator<(class SemVersion const &) const;
