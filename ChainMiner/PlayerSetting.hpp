@@ -25,6 +25,7 @@ public:
         else {
             create_empty_file();//不存在或为空才创建
             read_player_setting();
+            //logger.debug("{}", player_j.dump(4));
         }
     }
     void turnOn(const xuid_t &xuid, const string &nsid) {//开启指定项目
