@@ -15,9 +15,8 @@ class BlockSource;
 class BlockActor {
 
 #define AFTER_EXTRA
-// Add new members to class
+    // Add new members to class
 public:
-    
     LIAPI bool refreshData();
     LIAPI bool refreshData(BlockSource* bs);
     LIAPI std::unique_ptr<CompoundTag> getNbt();

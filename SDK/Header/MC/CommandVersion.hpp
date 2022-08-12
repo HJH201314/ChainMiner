@@ -11,10 +11,10 @@
 class CommandVersion {
 
 #define AFTER_EXTRA
-// Add Member There  
+    // Add Member There
 public:
-int Min = 1, Max = 0x7FFFFFFF;
-CommandVersion(){};
+    int Min = 1, Max = 0x7FFFFFFF;
+    CommandVersion(){};
 
 #define DISABLE_CONSTRUCTOR_PREVENTION_COMMANDVERSION
 #undef AFTER_EXTRA

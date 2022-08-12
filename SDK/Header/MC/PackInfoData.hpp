@@ -16,15 +16,15 @@ static_assert(offsetof(PackIdVersion, mType) == 0x80);
 struct PackInfoData {
 
 #define AFTER_EXTRA
-    PackIdVersion mPackIdVersion;//0
-    uint64_t mPackSize;//0x88
-    std::string mContentKey;//0x90
+    PackIdVersion mPackIdVersion; // 0
+    uint64_t mPackSize;           // 0x88
+    std::string mContentKey;      // 0x90
     std::string mSubpackName;
     ContentIdentity mContentIdentity;
     bool mHasScripts;
-    bool mForceServerPacks; 
+    bool mForceServerPacks;
     bool isRtxCapable;
-	
+
 #undef AFTER_EXTRA
 
 #ifndef DISABLE_CONSTRUCTOR_PREVENTION_PACKINFODATA
