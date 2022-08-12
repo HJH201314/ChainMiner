@@ -19,7 +19,7 @@ enum TeleportationCause {
 class MovePlayerPacket : public Packet {
 
 #define AFTER_EXTRA
-// Add Member There
+    // Add Member There
 public:
     ActorRuntimeID runtimeId;
     Vec3 position;
@@ -32,10 +32,10 @@ public:
     TeleportationCause teleportationCause;
     int entityType;
     long tick;
-    
+
     inline std::string toDebugString() {
         return fmt::format("{}: pos: {}, mode: {}, cause: {}",
-            __super::toDebugString(), position.toString(), (int)mode, int(teleportationCause));
+                           __super::toDebugString(), position.toString(), (int)mode, int(teleportationCause));
     }
 
 #undef AFTER_EXTRA

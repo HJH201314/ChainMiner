@@ -8,8 +8,7 @@
 struct ItemStackNetIdTag;
 struct ItemStackLegacyRequestIdTag;
 struct ItemStackRequestIdTag;
-enum ItemStackNetIdType : unsigned char
-{
+enum ItemStackNetIdType : unsigned char {
     ItemStackNetId_TypedServerNetId = 0,
     ItemStackRequestId_TypedClientNetId = 1,
     ItemStackLegacyRequestId_TypedClientNetId = 2,
@@ -19,13 +18,13 @@ enum ItemStackNetIdType : unsigned char
 struct ItemStackNetIdVariant {
 
 #define AFTER_EXTRA
-// Add Member There
+    // Add Member There
     std::variant<
         TypedServerNetId<ItemStackNetIdTag, int, 0>, TypedClientNetId<ItemStackRequestIdTag, int, 0>,
         TypedClientNetId<ItemStackLegacyRequestIdTag, int, 0>>
         id;
-   
-	
+
+
 #undef AFTER_EXTRA
 
 public:

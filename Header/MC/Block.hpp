@@ -12,14 +12,14 @@
 class Block {
 
 #define AFTER_EXTRA
-// Add new members to class
+    // Add new members to class
 public:
-	LIAPI static Block* create(const string& str, unsigned short tileData);
-	LIAPI static Block* create(CompoundTag* nbt);
+    LIAPI static Block* create(const string& str, unsigned short tileData);
+    LIAPI static Block* create(CompoundTag* nbt);
 
     LIAPI string getTypeName() const;
-	LIAPI int getId() const;
-	LIAPI unsigned short getTileData();
+    LIAPI int getId() const;
+    LIAPI unsigned short getTileData();
     LIAPI std::unique_ptr<CompoundTag> getNbt();
     LIAPI bool setNbt(CompoundTag* nbt);
 
@@ -27,17 +27,17 @@ public:
         __int64 v2; // r8
         __int64 v3; // rax
         v2 = *(__int64*)(this + 16);
-        if (!v2 || (v3 = *(__int64*)(&a2 + 16)) == 0) 
+        if (!v2 || (v3 = *(__int64*)(&a2 + 16)) == 0)
             return false;
         return v2 == v3 && *(unsigned short*)(this + 8) == *(unsigned short*)(&a2 + 8);
     }
-	
+
     inline bool operator!=(class Block const& a2) const {
         __int64 v2; // r8
         __int64 v3; // rax
 
         v2 = *(__int64*)(this + 16);
-        if (!v2 || (v3 = *(__int64*)(&a2 + 16)) == 0) 
+        if (!v2 || (v3 = *(__int64*)(&a2 + 16)) == 0)
             return false;
         return v2 != v3 || *(unsigned short*)(this + 8) != *(unsigned short*)(&a2 + 8);
     }
@@ -108,7 +108,6 @@ public:
     MCAPI enum CreativeItemCategory getCreativeCategory() const;
     MCAPI class gsl::basic_string_span<char const, -1> getCreativeGroup() const;
     MCAPI void getDebugText(std::vector<std::string> &, class BlockPos const &) const;
-    MCAPI class Block const & getDefaultState() const;
     MCAPI std::string getDescriptionId() const;
     MCAPI float getDestroySpeed() const;
     MCAPI int getDirectSignal(class BlockSource &, class BlockPos const &, int) const;

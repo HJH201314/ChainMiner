@@ -13,9 +13,9 @@
 class ListTag : public Tag {
 
 #define AFTER_EXTRA
-// Add Member There
-std::vector<Tag*> val;
-Tag::Type elementType;
+    // Add Member There
+    std::vector<Tag*> val;
+    Tag::Type elementType;
 
 public:
     LIAPI static std::unique_ptr<ListTag> create();
@@ -44,7 +44,7 @@ public:
     LIAPI void addByteArray(char data[], size_t size);
     LIAPI void addIntArray(TagMemoryChunk);
     LIAPI void addIntArray(int data[], size_t size);
-    
+
     LIAPI std::vector<Tag*>::const_iterator begin() const;
     LIAPI std::vector<Tag*>::const_iterator end() const;
 

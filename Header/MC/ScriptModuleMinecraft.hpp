@@ -2,6 +2,7 @@
 #pragma once
 #define AUTO_GENERATED
 #include "../Global.h"
+#include "Scripting.hpp"
 
 #define BEFORE_EXTRA
 namespace Scripting {
@@ -11,7 +12,7 @@ namespace Scripting {
         ClassBindingBuilder(ClassBindingBuilder const&) = delete;
         ClassBindingBuilder(ClassBindingBuilder const&&) = delete;
     };
-    template <typename T>
+    template <typename T, typename T2>
     class EnumBindingBuilder {
         EnumBindingBuilder() = delete;
         EnumBindingBuilder(EnumBindingBuilder const&) = delete;
@@ -39,7 +40,7 @@ struct ScriptNavigationResult {
 public:
     bool mIsFullPath;
     std::vector<BlockPos> mPath;
-	
+
 public:
     struct ScriptNavigationResult& operator=(struct ScriptNavigationResult const&) = delete;
     ScriptNavigationResult(struct ScriptNavigationResult const&) = delete;
@@ -49,8 +50,8 @@ public:
     MCAPI ~ScriptNavigationResult();
 };
 #undef AFTER_EXTRA
-    MCAPI class Scripting::ClassBindingBuilder<class BlockPos> bindBlockLocation(struct Scripting::Version);
-    MCAPI class Scripting::EnumBindingBuilder<enum ScriptModuleMinecraft::ScriptFacing> bindFacingEnum(struct Scripting::Version);
-    MCAPI class Scripting::EnumBindingBuilder<enum ScriptModuleMinecraft::ScriptMessageSourceType> bindMessageSourceType(struct Scripting::Version);
+    MCAPI class Scripting::ClassBindingBuilder<class BlockPos> bindBlockLocation();
+    MCAPI class Scripting::EnumBindingBuilder<enum ScriptModuleMinecraft::ScriptFacing, enum ScriptModuleMinecraft::ScriptFacing> bindFacingEnum();
+    MCAPI class Scripting::EnumBindingBuilder<enum ScriptModuleMinecraft::ScriptMessageSourceType, enum ScriptModuleMinecraft::ScriptMessageSourceType> bindMessageSourceType();
 
 };
