@@ -9,9 +9,8 @@
 #include "CommandParameterData.hpp"
 #include "CommandFlag.hpp"
 class CommandRegistry;
-//class CommandRegistry::Symbol;
-enum CommandPermissionLevel : char
-{
+// class CommandRegistry::Symbol;
+enum CommandPermissionLevel : char {
     Any = 0,
     GameMasters = 1,
     Admin = 2,
@@ -38,7 +37,7 @@ enum class OriginType : char {
     Script = 14,
     ExecuteContext = 15,
 
-    DedicatedServer = 7,//Server
+    DedicatedServer = 7, // Server
 };
 
 class CommandOutput;
@@ -48,19 +47,18 @@ class CommandOutput;
 class Command {
 
 #define AFTER_EXTRA
-// Add Member There
+    // Add Member There
 
 protected:
     int version;                       // 8
     CommandRegistry* registry;         // 16
-    CommandRegistry::Symbol symbol;    // 24, 
+    CommandRegistry::Symbol symbol;    // 24,
     CommandPermissionLevel permission; // 28
     CommandFlag flag;                  // 30
 
 public:
     template <typename T>
-    static bool checkHasTargets(CommandSelectorResults<T> const& a, CommandOutput& b)
-    {
+    static bool checkHasTargets(CommandSelectorResults<T> const& a, CommandOutput& b) {
         bool (*sym)(CommandSelectorResults<T> const& a, CommandOutput& b);
         if constexpr (std::is_same<T, class Actor>()) {
             sym = (decltype(sym))dlsym("??$checkHasTargets@VActor@@@Command@@KA_NAEBV?$CommandSelectorResults@VActor@@@@AEAVCommandOutput@@@Z");

@@ -34,12 +34,12 @@ public:
     LIAPI ItemStack* clone_s() const;
     LIAPI static ItemStack fromItemInstance(ItemInstance const& ins);
 
-	LIAPI std::string getTypeName() const;
-	LIAPI int getAux() const;
-	LIAPI int getCount() const;
+    LIAPI std::string getTypeName() const;
+    LIAPI int getAux() const;
+    LIAPI int getCount() const;
 
-	LIAPI bool setItem(ItemStack* newItem);
-	LIAPI bool setLore(const std::vector<std::string>& lores);
+    LIAPI bool setItem(ItemStack* newItem);
+    LIAPI bool setLore(const std::vector<std::string>& lores);
     LIAPI std::unique_ptr<CompoundTag> getNbt();
     LIAPI bool setNbt(CompoundTag* nbt);
     LIAPI string getStandardName(const Localization& language);
@@ -68,7 +68,7 @@ public:
     MCAPI ItemStack(class RecipeIngredient const &);
     MCAPI ItemStack(class gsl::basic_string_span<char const, -1>, int, int, class CompoundTag const *);
     MCAPI ItemStack();
-    //MCAPI void __autoclassinit2(unsigned __int64);
+    MCAPI void __autoclassinit2(unsigned __int64);
     MCAPI void _assignNetIdVariant(class ItemStack const &) const;
     MCAPI void clientInitLegacyRequestId(class TypedClientNetId<struct ItemStackLegacyRequestIdTag, int, 0> const &);
     MCAPI class ItemStack clone() const;

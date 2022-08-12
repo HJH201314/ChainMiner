@@ -6,13 +6,13 @@
 #define BEFORE_EXTRA
 // Include Headers or Declare Types Here
 enum VanillaBiomeTypes;
-    
+
 #undef BEFORE_EXTRA
 
 class Biome {
 
 #define AFTER_EXTRA
-// Add Member There
+    // Add Member There
 public:
     enum BiomeTempCategory;
     LIAPI int getId() const;
