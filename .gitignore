@@ -41,3 +41,4 @@ ChainMiner/Pdb/*
 ChainMiner/Tools/*
 cmake-build-release/*
 cmake-build-release-visual-studio/*
+/output/BDS-Test/plugins
