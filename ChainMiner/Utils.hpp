@@ -5,7 +5,7 @@
 #define CHAINMINER_UTILS_HPP
 
 inline string s_replace(string strSrc,
-                 const string& oldStr, const string& newStr, int count = -1) {
+                 const string& oldStr, const string& newStr, size_t count = -1) {
     string strRet = strSrc;
     size_t pos = 0;
     int l_count = 0;
