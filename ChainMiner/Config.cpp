@@ -25,12 +25,12 @@ void initConfig() {
         }
         catch (std::exception &e) {
             logger.error("Config File isInvalid, Err {}", e.what());
-            Sleep(1000 * 100);
+            //Sleep(1000 * 100);
             exit(1);
         }
         catch (...) {
             logger.error("Config File isInvalid");
-            Sleep(1000 * 100);
+            //Sleep(1000 * 100);
             exit(1);
         }
     } else {

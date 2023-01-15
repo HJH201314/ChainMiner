@@ -15,7 +15,7 @@ void miner1(int id, BlockPos* pos, bool sub = false);
 //funcs
 string getBlockDimAndPos(BlockInstance& bli);
 
-#include <MC/CompoundTag.hpp>//compile needed
+#include <llapi/mc/CompoundTag.hpp>//compile needed
 
 short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id);
 

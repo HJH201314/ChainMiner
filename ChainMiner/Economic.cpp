@@ -1,19 +1,19 @@
 #include "pch.h"
 #include "Economic.h"
-#include <LLAPI.h>
-#include <LoggerAPI.h>
-#include <MC/Scoreboard.hpp>
-#include <MC/Player.hpp>
-#include <MC/Level.hpp>
+#include <llapi/LLAPI.h>
+#include <llapi/LoggerAPI.h>
+#include <llapi/mc/Scoreboard.hpp>
+#include <llapi/mc/Player.hpp>
+#include <llapi/mc/Level.hpp>
 #include <string>
-#include <LLMoney.h>
+#include "api/LLMoney.h"
 
 extern Logger logger;
 
 //LLMoney不存在返回false,其余返回true
 bool Economic::init()
 {
-    auto llmoney = LL::getPlugin("LLMoney");
+    auto llmoney = ll::getPlugin("LLMoney");
     if (!llmoney)
     {
         return false;

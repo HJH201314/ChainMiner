@@ -3,11 +3,11 @@
 #include "Global.h"
 #include "Config.h"
 #include "Plugin.h"
-#include <RegCommandAPI.h>
-#include <MC/ItemStack.hpp>
-#include <MC/CompoundTag.hpp>
-#include <MC/Player.hpp>
-#include <third-party/FMT/core.h>
+#include <llapi/RegCommandAPI.h>
+#include <llapi/mc/ItemStack.hpp>
+#include <llapi/mc/CompoundTag.hpp>
+#include <llapi/mc/Player.hpp>
+#include <FMT/core.h>
 
 extern nlohmann::json config_j;
 
@@ -32,7 +32,7 @@ public:
 	void execute(CommandOrigin const& ori, CommandOutput& outp) const {
 		switch (opn) {
             case CMOP::reload: {
-                if(ori.getPermissionsLevel() > 0) {
+                if(ori.getPermissionsLevel() >= CommandPermissionLevel::Admin) {
                     readConfig();
                     outp.success("§e重载成功!");
                 }
@@ -44,29 +44,37 @@ public:
             }
             case CMOP::on: {
                 Player* pl = getPlayerFromOrigin(ori);
-                if(player_isSet) {//选择器
-                    for(auto el : player.results(ori))
-                        if(el->isPlayer())
-                            if(ori.getPermissionsLevel() > 0 || pl->getXuid() == el->getXuid())
+                if (player_isSet) {//选择器
+                    for (auto el : player.results(ori))
+                        if (el->isPlayer())
+                            if (ori.getPermissionsLevel() >= CommandPermissionLevel::Admin || pl->getXuid() == el->getXuid())
                                 playerSetting.turnOn(el->getXuid());
                     outp.success(config_j["msg"]["switch.on"]);
-                } else {
+                }
+                else if (pl) {
                     playerSetting.turnOn(pl->getXuid());
                     pl->sendTextPacket(config_j["msg"]["switch.on"]);
+                }
+                else {
+                    outp.error("Do not use this in console.");
                 }
                 return;
             }
             case CMOP::off: {
                 Player* pl = getPlayerFromOrigin(ori);
-                if(player_isSet) {//选择器
-                    for(auto el : player.results(ori))
-                        if(el->isPlayer())
-                            if(ori.getPermissionsLevel() > 0 || pl->getXuid() == el->getXuid())
+                if (player_isSet) {//选择器
+                    for (auto el : player.results(ori))
+                        if (el->isPlayer())
+                            if (ori.getPermissionsLevel() >= CommandPermissionLevel::Admin || pl->getXuid() == el->getXuid())
                                 playerSetting.turnOff(el->getXuid());
                     outp.success(config_j["msg"]["switch.off"]);
-                } else {
+                }
+                else if (pl) {
                     playerSetting.turnOff(pl->getXuid());
                     pl->sendTextPacket(config_j["msg"]["switch.off"]);
+                }
+                else {
+                    outp.error("Do not use this in console.");
                 }
                 return;
             }
@@ -112,7 +120,7 @@ public:
                 return;
             }
             case CMOP::test: {
-                if (ori.getPermissionsLevel() > 0) {
+                if (ori.getPermissionsLevel() >= CommandPermissionLevel::Admin) {
                     outp.success(fmt::format("{} {}", countTaskList()/*, countPos2Id()*/, countChainingBlocks()));
                 }
                 return;
@@ -166,7 +174,7 @@ void registerCommand() {
 	});
 }
 
-#include <FormUI.h>
+#include <llapi/FormUI.h>
 
 //C:\Program Files\WindowsApps\Microsoft.MinecraftUWP_1.18.3004.0_x64__8wekyb3d8bbwe\data\resource_packs\vanilla\textures\blocks
 
