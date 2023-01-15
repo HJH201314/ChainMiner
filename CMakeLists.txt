@@ -10,9 +10,7 @@ file(GLOB_RECURSE SRC_FILES_DIR
     ${PROJECT_SOURCE_DIR}/ChainMiner/*.h
 )
 
-include_directories(../SDK/Header)
-include_directories(../SDK/Header/third-party)
-include_directories(../SDK/Header/third-party-me)
+include_directories(../SDK/include)
 include_directories(ChainMiner)
 
 #已在dllmain中引入lib

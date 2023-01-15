@@ -1,26 +1,27 @@
 ﻿#include "pch.h"
-#include "LLAPI.h"
+#include <llapi/LLAPI.h>
 
-#include <MC/Level.hpp>
-#include <MC/BlockInstance.hpp>
-#include <MC/Block.hpp>
-#include <MC/BlockSource.hpp>
-#include <MC/Material.hpp>
-#include <MC/Actor.hpp>
-#include <MC/Item.hpp>
-#include <MC/Player.hpp>
-#include <MC/SimulatedPlayer.hpp>
-#include <MC/ItemStack.hpp>
-#include <MC/ItemInstance.hpp>
-#include <MC/ListTag.hpp>
-#include <MC/HashedString.hpp>
-#include <EventAPI.h>
+#include <llapi/mc/Level.hpp>
+#include <llapi/mc/BlockInstance.hpp>
+#include <llapi/mc/Block.hpp>
+#include <llapi/mc/BlockSource.hpp>
+#include <llapi/mc/Material.hpp>
+#include <llapi/mc/Actor.hpp>
+#include <llapi/mc/Item.hpp>
+#include <llapi/mc/Player.hpp>
+#include <llapi/mc/SimulatedPlayer.hpp>
+#include <llapi/mc/ItemStack.hpp>
+#include <llapi/mc/ItemInstance.hpp>
+#include <llapi/mc/ListTag.hpp>
+#include <llapi/mc/HashedString.hpp>
+#include <llapi/EventAPI.h>
 
 #include "Utils.hpp"
 #include "Plugin.h"
 #include "Global.h"
 #include "Config.h"
 #include "Economic.h"
+#include "Version.h"
 
 #include <unordered_map>
 #include <random>
@@ -53,6 +54,7 @@ extern std::unordered_map<string, BlockInfo> block_list;//方块列表
 extern nlohmann::json config_j;
 
 void PluginInit() {
+    logger.info("初始化... v{}.{}.{}.{}", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR, PLUGIN_VERSION_REVISION, PLUGIN_VERSION_BUILD);
     initConfig();
     initEventOnPlayerDestroy();
     // initEventOnBlockChange();
@@ -61,7 +63,7 @@ void PluginInit() {
 
 void initEventOnPlayerDestroy() {
     Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent &e) {
-        if(e.mPlayer->getPlayerGameType() != 0) return true;
+        if(e.mPlayer->getPlayerGameType() != GameType::GameTypeSurvival) return true;
         if(!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
