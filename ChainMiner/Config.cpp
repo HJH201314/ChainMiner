@@ -10,8 +10,12 @@ using json = nlohmann::json;
 
 extern Logger logger;
 std::unordered_map<string, BlockInfo> block_list;
+
+//初始化全局变量
 json config_j;//全局储存配置
-PlayerSetting playerSetting;//playerSetting的首次初始化
+PlayerSetting playerSetting;
+Economic economic;
+
 vector<string> op_list;
 
 void initConfig() {
@@ -83,24 +87,24 @@ void readConfig() {
         //logger.debug("{}", 7);
     }
     //money
-    Economic::mode = 0;
+    economic.mode = 0;
     if (config_j["money"].is_string()) {
         if (config_j["money"] == "llmoney") {
-            if (Economic::init()) {
-                Economic::mode = 1;
+            if (economic.init()) {
+                economic.mode = 1;
             }
             else {
-                Economic::mode = 0;
+                economic.mode = 0;
                 logger.warn("未检测到LLMoney,付费连锁将会失效!");
             }
         }
         else if (config_j["money"] == "scoreboard") {
             if (config_j["money.sbname"].is_string() && config_j["money.sbname"] != "") {
-                Economic::mode = 2;
-                Economic::sbname = config_j["money.sbname"];
+                economic.mode = 2;
+                economic.sbname = config_j["money.sbname"];
             }
             else {
-                Economic::mode = 0;
+                economic.mode = 0;
                 logger.warn("未配置记分板money名称,付费连锁将会失效!");
             }
         }

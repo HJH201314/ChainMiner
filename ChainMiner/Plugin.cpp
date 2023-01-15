@@ -106,8 +106,8 @@ void initEventOnPlayerDestroy() {
             int limit = block_list[bn].limit;
             if(tool->isDamageableItem())
                 limit = std::min(limit, tool->getMaxDamage() - getDamageFromNbt(nbt) - 1);//留一点耐久,防止炸掉
-            if (Economic::mode > 0 && block_list[bn].cost > 0)
-                limit = std::min(limit, int(Economic::getMoney(e.mPlayer) / block_list[bn].cost));
+            if (economic.mode > 0 && block_list[bn].cost > 0)
+                limit = std::min(limit, int(economic.getMoney(e.mPlayer) / block_list[bn].cost));
 
             //仅当多个时
             if (limit > 1) {
@@ -278,13 +278,13 @@ void miner1(int id, BlockPos *pos, bool sub) {
             mi.pl->refreshInventory();
             string msg = config_j["msg"]["mine.success"];
             msg = s_replace(msg,"%Count%",std::to_string(mi.cnt));
-            if (Economic::mode > 0) {
+            if (economic.mode > 0) {
                 long long cost = block_list[mi.name].cost * (mi.cnt - 1);//有一个是自己挖的
                 if (cost > 0) {
-                    Economic::reduceMoney(mi.pl, cost);
+                    economic.reduceMoney(mi.pl, cost);
                     msg += config_j["msg"]["money.use"];
                     msg = s_replace(msg, "%Cost%", std::to_string(cost));
-                    msg = s_replace(msg, "%Remain%", std::to_string(Economic::getMoney(mi.pl)));
+                    msg = s_replace(msg, "%Remain%", std::to_string(economic.getMoney(mi.pl)));
                     msg = s_replace(msg, "%Name%", config_j["money.name"]);
                 }
             }
