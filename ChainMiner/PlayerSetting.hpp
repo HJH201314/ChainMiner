@@ -45,12 +45,18 @@ public:
         save_player_setting();
     }
     bool getSwitch(const xuid_t& xuid, const string &nsid) {//获取指定项目开关
+        extern json config_j;
         if (player_j.contains(xuid)) {
             if (player_j[xuid].contains(nsid)) {
                 return player_j[xuid][nsid];
             }
+            else {
+                return bool(config_j["switch"][nsid]);
+            }
         }
-        return true;
+        else {
+            return bool(config_j["switch"][nsid]);
+        }
     }
     bool getSwitch(const xuid_t &xuid) {
         extern json config_j;
@@ -63,7 +69,7 @@ public:
             }
         }
         else {
-            return config_j["switch"]["default"];
+            return bool(config_j["switch"]["default"]);
         }
     }
     static void setOP(const xuid_t &xuid) {
