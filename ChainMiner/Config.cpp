@@ -181,7 +181,6 @@ json getDefaultConfig() {
             {"menu.count_per_page", -1},
             {"switch", {
                     {"default", true},
-                    {"chain_while_sneaking_only", true},
                     {"mine.success", true},
                     {"switch.default注释", "玩家没有进行设置时的默认开关,允许布尔true/false"}
             }},
