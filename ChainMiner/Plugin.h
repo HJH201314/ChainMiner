@@ -11,6 +11,7 @@ void registerCommand();
 
 //miner
 void miner1(int id, BlockPos* pos, bool sub = false);
+void miner2(int task_id, BlockPos* start_pos);
 
 //funcs
 string getBlockDimAndPos(BlockInstance& bli);
