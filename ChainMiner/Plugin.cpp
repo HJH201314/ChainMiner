@@ -69,14 +69,15 @@ void PluginInit() {
 
 void initEventOnPlayerDestroy() {
     Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent& e) {
-        if(e.mPlayer->getPlayerGameType() != GameType::GameTypeSurvival) return true;
-        if(!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
         
         if (chaining_blocks.find(getBlockDimAndPos(bli)) != chaining_blocks.end()) {
         	return true;//如果是连锁采集的就不处理(pl->playerDestroy()似乎不会触发此事件)
         }
+        if (e.mPlayer->getPlayerGameType() != GameType::GameTypeSurvival) return true;
+        if (!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
+        if (playerSetting.getSwitch(e.mPlayer->getXuid(), "chain_while_sneaking_only") && !e.mPlayer->isSneaking()) return true;
         Block *bl = bli.getBlock();
         string bn = bl->getTypeName();
         //logger.info("{} {} {} {}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant());
