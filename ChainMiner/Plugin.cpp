@@ -24,9 +24,15 @@
 #include "Version.h"
 
 #include <unordered_map>
+#include <queue>
 #include <random>
 #include <utility>
 
+using std::unordered_map;
+using std::unordered_set;
+using std::queue;
+using std::pair;
+using std::unique_ptr;
 using std::to_string;
 
 Logger logger("ChainMiner");
@@ -47,10 +53,10 @@ typedef struct minerinfo {
     Player* pl;
 } MinerInfo;
 
-std::unordered_map<int, MinerInfo> task_list;//id,cnt
-std::unordered_set<string> chaining_blocks;//
+unordered_map<int, MinerInfo> task_list;//id,cnt
+unordered_set<string> chaining_blocks;//避免在call事件的时候进入死循环
 
-extern std::unordered_map<string, BlockInfo> block_list;//方块列表
+extern unordered_map<string, BlockInfo> block_list;//方块列表
 extern nlohmann::json config_j;
 
 void PluginInit() {
@@ -62,7 +68,7 @@ void PluginInit() {
 }
 
 void initEventOnPlayerDestroy() {
-    Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent &e) {
+    Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent& e) {
         if(e.mPlayer->getPlayerGameType() != GameType::GameTypeSurvival) return true;
         if(!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         BlockInstance bli = e.mBlockInstance;
@@ -113,7 +119,7 @@ void initEventOnPlayerDestroy() {
             if (limit > 1) {
                 //add task
                 int id = (int) task_list.size() + 1;
-                task_list.insert(std::pair<int, MinerInfo>{
+                task_list.insert(pair<int, MinerInfo>{
                         id,
                         {bn,
                          bli.getDimensionId(),
@@ -129,7 +135,8 @@ void initEventOnPlayerDestroy() {
                 string pos = getBlockDimAndPos(bli);
                 //logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
 
-                miner1(id, &blp, false);
+                //miner1(id, &blp, false);
+                miner2(id, &blp);
             }
         }
         return true;
@@ -145,7 +152,7 @@ string getBlockDimAndPos(BlockInstance& bli) {
 
 //get enchant level with nbt && enchid
 //return level (0 when non-exist)
-short getEnchantLevel(std::unique_ptr<CompoundTag> &nbt, short id) {
+short getEnchantLevel(unique_ptr<CompoundTag> &nbt, short id) {
     if (nbt->contains("tag")) {//必须判断否则会报错
         auto tag = nbt->getCompound("tag");
         if (tag->contains("ench")) {
@@ -161,7 +168,7 @@ short getEnchantLevel(std::unique_ptr<CompoundTag> &nbt, short id) {
     return 0;
 }
 
-int getDamageFromNbt(std::unique_ptr<CompoundTag> &nbt) {
+int getDamageFromNbt(unique_ptr<CompoundTag> &nbt) {
     if (nbt->contains("tag")) {//必须判断否则会报错
         auto tag = nbt->getCompound("tag");
         if (tag->contains("Damage")) {
@@ -198,7 +205,7 @@ bool toolDamage(ItemStack &tool, int count) {
     else { //没有tag
         auto compoundTag = CompoundTag::create();
         compoundTag->putInt("Damage", count);
-        nbt->putCompound("tag", std::unique_ptr<CompoundTag>(compoundTag.release()));
+        nbt->putCompound("tag", unique_ptr<CompoundTag>(compoundTag.release()));
         tool.setNbt(nbt.get());
         //logger.debug("new damage:{}", nbt->toSNBT());
     }
@@ -213,6 +220,7 @@ int countChainingBlocks() {
     return (int)chaining_blocks.size();
 }
 
+//使用递归进行连锁采集
 void miner1(int id, BlockPos *pos, bool sub) {
     if (task_list[id].cnt < task_list[id].limit) {
         int i, j;
@@ -295,4 +303,78 @@ void miner1(int id, BlockPos *pos, bool sub) {
         task_list.erase(id);
     }
     //logger.debug("task {} end.", id);
+}
+
+//使用队列进行连锁采集
+#include <tuple>
+using std::tuple;
+using std::get;
+void miner2(int task_id, BlockPos* start_pos) {
+    queue<BlockPos> block_q;
+    block_q.push(*start_pos);
+    constexpr tuple<int, int, int> dirs[6] = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+    while (task_list[task_id].cnt < task_list[task_id].limit && !block_q.empty()) {
+        BlockPos curpos = block_q.front();
+        for (int i = 0; i < 6; i++) {
+            BlockPos newpos = curpos.add(get<0>(dirs[i]), get<1>(dirs[i]), get<2>(dirs[i]));
+            Block* bl = Level::getBlock(newpos, task_list[task_id].dimId);
+            auto r = block_list.find(task_list[task_id].name);
+            if (bl->getTypeName() == task_list[task_id].name || v_contains(r->second.similar, bl->getTypeName())) {
+                block_q.push(newpos);
+            }
+        }
+        
+        Block* bl = Level::getBlock(curpos, task_list[task_id].dimId);
+        if (bl->getId() != 0) {
+            //累计耐久损失
+            if (task_list[task_id].enchU == 0 ||
+                (task_list[task_id].enchU > 0 && ud(re) < (100 / (task_list[task_id].enchU + 1))))
+                task_list[task_id].cntD++;
+
+            //破坏方块
+            auto ev = new Event::PlayerDestroyBlockEvent();
+            ev->mBlockInstance = Level::getBlockInstance(curpos, task_list[task_id].dimId);
+            ev->mPlayer = task_list[task_id].pl;
+            string dp = getBlockDimAndPos(ev->mBlockInstance);
+            chaining_blocks.insert(dp);
+            bool res = ev->call();
+            chaining_blocks.erase(dp);
+            if (!res) {
+                continue;
+            }
+            else {
+
+                bl->playerDestroy(*task_list[task_id].pl, curpos);//playerDestroy here can only get drops
+                Level::setBlock(curpos, task_list[task_id].dimId, "minecraft:air", 0);
+                task_list[task_id].cnt++;
+            }
+        }
+        block_q.pop();
+    }
+
+    //结果计算
+    MinerInfo mi = task_list[task_id];
+    if (mi.cnt > 0) {
+        //减少耐久
+        ItemStack tool = mi.pl->getCarriedItem();
+        toolDamage(tool, mi.cntD);
+        //手动给玩家替换工具
+        mi.pl->setCarriedItem(tool);
+        mi.pl->refreshInventory();
+        string msg = config_j["msg"]["mine.success"];
+        msg = s_replace(msg, "%Count%", std::to_string(mi.cnt));//有一个是自己挖的
+        if (economic.mode > 0) {
+            long long cost = block_list[mi.name].cost * (mi.cnt - 1);
+            if (cost > 0) {
+                economic.reduceMoney(mi.pl, cost);
+                msg += config_j["msg"]["money.use"];
+                msg = s_replace(msg, "%Cost%", std::to_string(cost));
+                msg = s_replace(msg, "%Remain%", std::to_string(economic.getMoney(mi.pl)));
+                msg = s_replace(msg, "%Name%", config_j["money.name"]);
+            }
+        }
+        if (config_j["switch"]["mine.success"])
+            mi.pl->sendTextPacket(msg);
+    }
+    task_list.erase(task_id);
 }
