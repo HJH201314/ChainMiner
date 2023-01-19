@@ -72,7 +72,7 @@ void initEventOnPlayerDestroy() {
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
         
-        if (chaining_blocks.find(getBlockDimAndPos(bli)) != chaining_blocks.end()) {
+        if (chaining_blocks.size() > 0 && chaining_blocks.find(getBlockDimAndPos(bli)) != chaining_blocks.end()) {
         	return true;//如果是连锁采集的就不处理(pl->playerDestroy()似乎不会触发此事件)
         }
         if (e.mPlayer->getPlayerGameType() != GameType::GameTypeSurvival) return true;

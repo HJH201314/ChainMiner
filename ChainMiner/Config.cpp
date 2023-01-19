@@ -43,7 +43,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 15
+#define CURRENT_CONFIG_VERSION 16
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
