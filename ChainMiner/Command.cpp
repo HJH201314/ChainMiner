@@ -109,10 +109,23 @@ public:
                 }
                 return;
             }
+            case 0: {
+                Player* pl = getPlayerFromOrigin(ori);
+                if (pl->isPlayer()) {
+                    sendPlayerMenu(pl);
+                }
+                else {
+                    outp.error("Please use in game.");
+                }
+                return;
+            }
             case CMOP::menu: {
                 Player* pl = getPlayerFromOrigin(ori);
                 if (pl->isPlayer()) {
-                    sendNormalMenu(pl);
+                    sendBlockSwitchMenu(pl);
+                }
+                else {
+                    outp.error("Please use in game.");
                 }
                 return;
             }
@@ -136,9 +149,11 @@ public:
                                   "ChainMiner连锁采集",
                                   CommandPermissionLevel::Any,
                                   { (CommandFlagValue)0 }, { (CommandFlagValue)0x80 });
+        //0 param, open menu
+        registry->registerOverload<ChainMinerCommand>(config_j["command"]);
         //1 param, operator
 		registry->addEnum<CMOP>("OP1",
-            { {"reload", CMOP::reload}, {"test", CMOP::test}, {"menu", CMOP::menu}, {"edit", CMOP::edit}, {"help", CMOP::help}});
+            { {"reload", CMOP::reload}, {"test", CMOP::test}, {"menu", CMOP::menu}, {"block", CMOP::menu}, {"edit", CMOP::edit}, {"help", CMOP::help}});
 		registry->registerOverload<ChainMinerCommand>(
                 config_j["command"],
                 makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional","OP1"));
@@ -159,11 +174,16 @@ public:
             makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional", "OP3"),
             makeMandatory(&ChainMinerCommand::player, "player", &ChainMinerCommand::player_isSet));
 	}
-    /*
+    /* 
+    * 方块独立设置
     * @pl 玩家对象
     * @page 页码，-1为全部，页码从0开始
     */
-    void sendNormalMenu(Player* pl, int page = -1) const;
+    void sendBlockSwitchMenu(Player* pl, int page = -1) const;
+    //发送菜单
+    void sendPlayerMenu(Player* pl) const;
+    //基础设置
+    void sendBasicSettingMenu(Player* pl) const;
 };
 
 //订阅指令注册事件并初始化指令
@@ -175,12 +195,39 @@ void registerCommand() {
 }
 
 #include <llapi/FormUI.h>
-
+using namespace Form;
 //C:\Program Files\WindowsApps\Microsoft.MinecraftUWP_1.18.3004.0_x64__8wekyb3d8bbwe\data\resource_packs\vanilla\textures\blocks
 
-void ChainMinerCommand::sendNormalMenu(Player* pl, int page) const {
+void ChainMinerCommand::sendPlayerMenu(Player* pl) const {
+    SimpleForm form("连锁采集 - ChainMiner", "");
+    form.addButton("基础设置", "", [=](Player* p_pl) { sendBasicSettingMenu(p_pl); })
+        .addButton("方块开关", "", [=](Player* p_pl) { sendBlockSwitchMenu(p_pl); })
+        .addButton("关闭", "");
+    form.sendTo(pl);
+}
+
+void ChainMinerCommand::sendBasicSettingMenu(Player* pl) const {
+    CustomForm form("连锁采集 - 基础设置");
+    form.addLabel("tip1", "修改后点击提交即可保存");
+    form.addToggle("chain", "连锁采集开关", playerSetting.getSwitch(pl->getXuid()));
+    form.addToggle("sneak", "仅在下蹲时连锁", playerSetting.getSwitch(pl->getXuid(), "chain_while_sneaking_only"));
+    form.sendTo(pl, [=](Player* p_pl, std::map<string, std::shared_ptr<CustomFormElement>> elems) {
+        //为0大概率说明叉掉了
+        if (elems.size() > 0) {
+            if (playerSetting.getSwitch(p_pl->getXuid()) != elems["chain"]->getBool()) {
+                playerSetting.setSwitch(p_pl->getXuid(), "switch", elems["chain"]->getBool());
+            }
+            else if (playerSetting.getSwitch(p_pl->getXuid(), "chain_while_sneaking_only") != elems["sneak"]->getBool()) {
+                playerSetting.setSwitch(p_pl->getXuid(), "chain_while_sneaking_only", elems["sneak"]->getBool());
+            }
+            p_pl->sendText("§c[§6连§e锁§a采§b集§c] §a设置成功");
+        }
+        sendPlayerMenu(p_pl);
+    });
+}
+
+void ChainMinerCommand::sendBlockSwitchMenu(Player* pl, int page) const {
     //第一页的page=0
-    using namespace Form;
     extern std::unordered_map<string, BlockInfo> block_list;//可连锁方块列表
 
     int count_per_page = config_j["menu.count_per_page"];
@@ -188,7 +235,7 @@ void ChainMinerCommand::sendNormalMenu(Player* pl, int page) const {
     page = (page < max_page ? page : max_page);//取更小的页码->避免空页
     if (count_per_page != -1 && page == -1) page = 0;//当每页数量不为-1时->访问第一页
     //logger.debug("{} {} {} {}", page, max_page, count_per_page, block_list.size());
-    SimpleForm form("连锁采集 - ChainMiner", "选择一项进行开关");
+    SimpleForm form("连锁采集 - 方块开关", "选择一项进行开关");
 
     auto it = block_list.begin();
     advance(it, (page == -1 ? 0 : page * count_per_page));//
@@ -210,16 +257,16 @@ void ChainMinerCommand::sendNormalMenu(Player* pl, int page) const {
                 msg = s_replace(msg, "%Block%", nsid);
                 p_pl->sendTextPacket(msg);
             }
-            sendNormalMenu(p_pl, page);//一直重复发送菜单
+            sendBlockSwitchMenu(p_pl, page);//一直重复发送菜单
             });
     }
     if (page >= 1)
         form.addButton("上一页", "", [=](Player* p_pl) {
-        sendNormalMenu(p_pl, page - 1);//发送上一页的菜单
+        sendBlockSwitchMenu(p_pl, page - 1);//发送上一页的菜单
             });
     if (page >= 0 && page < max_page)
         form.addButton("下一页", "", [=](Player* p_pl) {
-        sendNormalMenu(p_pl, page + 1);
+        sendBlockSwitchMenu(p_pl, page + 1);
             });
     form.addButton("关闭");
     form.sendTo(pl);

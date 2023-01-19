@@ -29,7 +29,11 @@ public:
         }
     }
     void turnOn(const xuid_t &xuid, const string &nsid) {//开启指定项目
-        player_j[xuid].erase(nsid);
+        //两种情况
+        //当nsid包含minecraft:即表示某个方块时，删除该属性（因为默认为true）
+        //当nsid不包含时，设置为true
+        if (nsid.find("minecraft:") == 1) player_j[xuid].erase(nsid);
+        else player_j[xuid][nsid] = true;
         save_player_setting();
     }
     void turnOn(const xuid_t &xuid) {
@@ -46,16 +50,14 @@ public:
     }
     bool getSwitch(const xuid_t& xuid, const string &nsid) {//获取指定项目开关
         extern json config_j;
-        if (player_j.contains(xuid)) {
-            if (player_j[xuid].contains(nsid)) {
-                return player_j[xuid][nsid];
-            }
-            else {
-                return bool(config_j["switch"][nsid]);
-            }
+        if (player_j.contains(xuid) && player_j[xuid].contains(nsid)) {
+            return player_j[xuid][nsid];
+        }
+        else if (config_j["switch"].contains(nsid)) {
+            return bool(config_j["switch"][nsid]);
         }
         else {
-            return bool(config_j["switch"][nsid]);
+            return true;
         }
     }
     bool getSwitch(const xuid_t &xuid) {
@@ -71,6 +73,10 @@ public:
         else {
             return bool(config_j["switch"]["default"]);
         }
+    }
+    void setSwitch(const xuid_t& xuid, const string& nsid, const bool& value) {
+        player_j[xuid][nsid] = value;
+        save_player_setting();
     }
     static void setOP(const xuid_t &xuid) {
         std::cout << "0";
