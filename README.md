@@ -1,22 +1,25 @@
-# # ChainMiner - 连锁采集
+# # 连锁采集 - ChainMiner
 
-一个新手写的基于LiteLoaderBDS（[MineBBS](https://www.minebbs.com/liteloader/) [Github](https://github.com/LiteLDev/LiteLoaderBDS)）的插件
+基于LiteLoaderBDS（[MineBBS](https://www.minebbs.com/liteloader/) [Github](https://github.com/LiteLDev/LiteLoaderBDS)）的插件
 
 这个插件旨在帮助玩家更快地采集方块
 
-由于本人是编程初学者，插件难免存在不足，恳请各位指正。
+由于本人是编程初学者，插件难免存在不足，恳请各位指正~
 
-## 特性 - Feature
+## 特性
 
-- 兼容耐久、时运魔咒
-- 工具耐久耗尽保护
+- 下蹲连锁开关
 - 兼容领地插件
-- 可设置指定工具触发连锁
+- 仅生存模式下可用
+- 工具耐久耗尽保护
 - 允许玩家自由开关
-- 仅在生存模式下可使用连锁
+- 兼容耐久、时运魔咒
+- 可设置指定工具触发连锁
 - 支持LLMoney（[MineBBS](https://www.minebbs.com/resources/llmoney-ll.2385/) [Github](https://github.com/LiteLDev/LiteLoaderPlugins)）、记分板经济
 
-## 指令 - Command
+## 指令
+
+默认指令为`hcm`，可编辑`config.json`的`command`进行修改，更改后需重启服务器生效。
 
 - `/hcm reload`
 重载部分配置（op及以上）
@@ -24,21 +27,49 @@
 开启连锁采集（op及控制台可使用目标选择器target）
 - `/hcm off [target]`
 关闭连锁采集（op及控制台可使用目标选择器target）
+- `/hcm menu`
+打开连锁采集菜单
+- `/hcm block`
+直接打开单个方块设置菜单
 
-## 配置文件 - Config
+## 配置文件
 
 ### `config.json` - 插件设置
 
+- `name` 在列表中展示的方块名称
+- `enabled` 是否启用该方块（默认为true）
 - `cost` 每连锁一个该方块消耗的金钱
 - `limit` 最大连锁采集数量
 - `tools` 触发连锁采集必须使用的工具
   - 注意: 空字符串""表示徒手
 
 - `similar` 可以一同连锁的同类方块
-- `SilkTouch` 连锁采集（注意S和T要大写）
+- `SilkTouch` 精准采集设置（注意S和T要大写）
   - `0` 为默认值，表示附有精准采集的工具无法触发连锁（适用于矿物等）
   - `1` 表示当且仅当工具附有精准采集时才能触发连锁（适用于蓝冰等）
   - `2` 表示无论工具是否附有精准采集都能触发连锁（适用于原木等）
+
+### `player.json` - 玩家数据
+
+**不建议**手动修改
+
+## 兼容性
+
+|BDS版本|LiteLoader版本|插件版本|
+|--|--|--|
+|1.19.50&51|2.9.x|0.2.5.7 (fix)|
+|1.19.40|2.8.x|0.2.5.6|
+|1.19.30|2.7.x|0.2.5.5|
+|1.19.21&22|2.6.x|0.2.5.4|
+|1.19.20|2.5.x|0.2.5.4|
+|1.19.10|2.4.x|0.2.5.3|
+|1.19.1|忘了|0.2.5|
+
+## 开源
+
+[Github](https://github.com/HJH201314/ChainMiner)
+
+## 附录
 
 #### 配置文件样例
 
@@ -119,7 +150,3 @@
     }
 }
 ```
-
-## 开源 - OpenSource
-
-[Github](https://github.com/HJH201314/ChainMiner)
