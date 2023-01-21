@@ -20,10 +20,11 @@ private:
         help = 2,
         op = 100,
         deop = 101,
-        edit = 501,
+        edit = 301,
         on = 200,
         off = 201,
         menu = 500,
+        block = 501,
         test = 999
 	} opn;
     CommandSelector<Player> player;
@@ -92,6 +93,9 @@ public:
                                 outp.success("<" + el->getName() + ">已经是连锁采集管理.");
                             }
                 }
+                else {
+                    outp.error("Permission Denied.");
+                }
                 return;
             }
             case CMOP::deop: {
@@ -107,9 +111,13 @@ public:
                                 outp.success("<" + el->getName() + ">不是连锁采集管理.");
                             }
                 }
+                else {
+                    outp.error("Permission Denied.");
+                }
                 return;
             }
-            case 0: {
+            case 0:
+            case menu: {
                 Player* pl = getPlayerFromOrigin(ori);
                 if (pl->isPlayer()) {
                     sendPlayerMenu(pl);
@@ -119,7 +127,7 @@ public:
                 }
                 return;
             }
-            case CMOP::menu: {
+            case CMOP::block: {
                 Player* pl = getPlayerFromOrigin(ori);
                 if (pl->isPlayer()) {
                     sendBlockSwitchMenu(pl);
@@ -153,7 +161,7 @@ public:
         registry->registerOverload<ChainMinerCommand>(config_j["command"]);
         //1 param, operator
 		registry->addEnum<CMOP>("OP1",
-            { {"reload", CMOP::reload}, {"test", CMOP::test}, {"menu", CMOP::menu}, {"block", CMOP::menu}, {"edit", CMOP::edit}, {"help", CMOP::help}});
+            { {"reload", CMOP::reload}, {"test", CMOP::test}, {"menu", CMOP::block}, {"block", CMOP::block}, {"edit", CMOP::edit}, {"help", CMOP::help}});
 		registry->registerOverload<ChainMinerCommand>(
                 config_j["command"],
                 makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional","OP1"));
@@ -244,7 +252,7 @@ void ChainMinerCommand::sendBlockSwitchMenu(Player* pl, int page) const {
         string name = it->first.substr(10);
         string nsid = "minecraft:" + name;
         bool onoff = playerSetting.getSwitch(pl->getXuid(), nsid);
-        form.addButton(string(name + "§f(" + (onoff ? "§a开启" : "§c关闭") + "§f)"), (it->second.texture == "" ? string("textures/blocks/" + name) : it->second.texture), [=](Player* p_pl) {
+        form.addButton(string((it->second.name == "" ? name : it->second.name) + "§f(" + (onoff ? "§a开启" : "§c关闭") + "§f)"), (it->second.texture == "" ? string("textures/blocks/" + name) : it->second.texture), [=](Player* p_pl) {
             if (playerSetting.getSwitch(p_pl->getXuid(), nsid)) {
                 playerSetting.turnOff(p_pl->getXuid(), nsid);
                 string msg = config_j["msg"]["switch.block.off"];

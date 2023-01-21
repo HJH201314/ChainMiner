@@ -84,6 +84,7 @@ void initEventOnPlayerDestroy() {
         //logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
         auto r = block_list.find(bn);
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
+            if (!r->second.enabled) return true;//全局关闭
             if (!playerSetting.getSwitch(e.mPlayer->getXuid(),bn)) return true;//方块被关闭
 
             ItemStack *tool = (ItemStack *) &e.mPlayer->getCarriedItem();
