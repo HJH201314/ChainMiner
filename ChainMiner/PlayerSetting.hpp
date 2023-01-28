@@ -32,7 +32,7 @@ public:
         //两种情况
         //当nsid包含minecraft:即表示某个方块时，删除该属性（因为默认为true）
         //当nsid不包含时，设置为true
-        if (nsid.find("minecraft:") == 1) player_j[xuid].erase(nsid);
+        if (nsid.find("minecraft:") == 0) player_j[xuid].erase(nsid);
         else player_j[xuid][nsid] = true;
         save_player_setting();
     }
