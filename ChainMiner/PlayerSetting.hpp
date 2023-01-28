@@ -79,15 +79,10 @@ public:
         save_player_setting();
     }
     static void setOP(const xuid_t &xuid) {
-        std::cout << "0";
         extern json config_j;
-        std::cout << "1";
         op_list.push_back(xuid);
-        std::cout << "2";
         config_j["op"] = op_list;
-        std::cout << "3";
         saveConfig();
-        std::cout << "4";
     }
     static void delOP(const xuid_t& xuid) {
         extern json config_j;
