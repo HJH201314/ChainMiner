@@ -22,7 +22,7 @@ short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id);
 
 int getDamageFromNbt(std::unique_ptr<CompoundTag>& nbt);
 
-bool toolDamage(ItemStack& tool, int count);
+int toolDamage(ItemStack& tool, int count);
 
 int countTaskList();
 

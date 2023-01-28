@@ -112,8 +112,9 @@ void initEventOnPlayerDestroy() {
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());
             int limit = block_list[bn].limit;
-            if(tool->isDamageableItem())
-                limit = std::min(limit, tool->getMaxDamage() - getDamageFromNbt(nbt) - 1);//留一点耐久,防止炸掉
+            if (tool->isDamageableItem()) {
+                limit = std::min(limit, int((tool->getMaxDamage() - getDamageFromNbt(nbt) - 1) / (ConfigManager::multiply_damage_switch ? ConfigManager::multiply_damage_max : 1)));//留一点耐久,防止炸掉
+            }
             if (economic.mode > 0 && block_list[bn].cost > 0)
                 limit = std::min(limit, int(economic.getMoney(e.mPlayer) / block_list[bn].cost));
 
@@ -183,35 +184,40 @@ int getDamageFromNbt(unique_ptr<CompoundTag> &nbt) {
     return 0;
 }
 
-bool toolDamage(ItemStack &tool, int count) {
+int toolDamage(ItemStack &tool, int count) {
+    int damage = count;
     auto nbt = tool.getNbt();
-    //logger.debug("before:{}", nbt->toSNBT());
+    //logger.debug("before:{} {}", nbt->toSNBT(), tool.getMaxDamage());
+    if (ConfigManager::multiply_damage_switch) {
+        double rate = ConfigManager::multiply_damage_min + (ConfigManager::multiply_damage_max - ConfigManager::multiply_damage_min) * ud(re) / 100;
+        //logger.debug("rate:{}", rate);
+        damage = count * rate;
+    }
     if (nbt->contains("tag")) {//必须判断否则会报错
         auto tag = nbt->getCompound("tag");
         if (tag->contains("Damage")) {
-            if (tag->getInt("Damage") + count < tool.getMaxDamage()) {
-                tag->putInt("Damage", tag->getInt("Damage") + count);
+            if (tag->getInt("Damage") + damage < tool.getMaxDamage()) {
+                tag->putInt("Damage", tag->getInt("Damage") + damage);
                 //logger.debug("{}", tag->getInt("Damage"));
 
                 tool.setNbt(nbt.get());
                 //logger.debug("after:{}", tool.getNbt()->toSNBT());
-                return true;
             }
-            else return false;
+            else damage = 0;
         }
         else { //没有Damage
-            tag->putInt("Damage", count);
+            tag->putInt("Damage", damage);
             tool.setNbt(nbt.get());
         }
     }
     else { //没有tag
         auto compoundTag = CompoundTag::create();
-        compoundTag->putInt("Damage", count);
+        compoundTag->putInt("Damage", damage);
         nbt->putCompound("tag", unique_ptr<CompoundTag>(compoundTag.release()));
         tool.setNbt(nbt.get());
         //logger.debug("new damage:{}", nbt->toSNBT());
     }
-    return true;
+    return damage;
 }
 
 int countTaskList() {
@@ -345,7 +351,6 @@ void miner2(int task_id, BlockPos* start_pos) {
                 continue;
             }
             else {
-
                 bl->playerDestroy(*task_list[task_id].pl, curpos);//playerDestroy here can only get drops
                 Level::setBlock(curpos, task_list[task_id].dimId, "minecraft:air", 0);
                 task_list[task_id].cnt++;
@@ -359,12 +364,14 @@ void miner2(int task_id, BlockPos* start_pos) {
     if (mi.cnt > 0) {
         //减少耐久
         ItemStack tool = mi.pl->getCarriedItem();
-        toolDamage(tool, mi.cntD);
+        int dmg = toolDamage(tool, mi.cntD);
         //手动给玩家替换工具
         mi.pl->setCarriedItem(tool);
         mi.pl->refreshInventory();
         string msg = config_j["msg"]["mine.success"];
         msg = s_replace(msg, "%Count%", std::to_string(mi.cnt));//有一个是自己挖的
+        if (config_j["switch"]["mine.damage"])
+            msg += s_replace(config_j["msg"]["mine.damage"], "%Damage%", std::to_string(dmg));
         if (economic.mode > 0) {
             long long cost = block_list[mi.name].cost * (mi.cnt - 1);
             if (cost > 0) {

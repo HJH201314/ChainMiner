@@ -20,6 +20,8 @@ private:
         help = 2,
         op = 100,
         deop = 101,
+        ban = 102,
+        forgive = 103,
         edit = 301,
         on = 200,
         off = 201,
@@ -116,6 +118,14 @@ public:
                 }
                 return;
             }
+            case CMOP::ban: {
+
+                return;
+            }
+            case CMOP::forgive: {
+
+                return;
+            }
             case 0:
             case menu: {
                 Player* pl = getPlayerFromOrigin(ori);
@@ -176,7 +186,9 @@ public:
         //2 params, operator & player
         registry->addEnum<CMOP>("OP3",
             { {"op", CMOP::op},
-              {"deop", CMOP::deop} });
+              {"deop", CMOP::deop},
+              {"ban", CMOP::ban}, 
+              {"forgive", CMOP::forgive} });
         registry->registerOverload<ChainMinerCommand>(
             config_j["command"],
             makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional", "OP3"),

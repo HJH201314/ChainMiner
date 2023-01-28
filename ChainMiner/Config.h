@@ -22,4 +22,11 @@ struct BlockInfo {
     bool enabled{ true };//是否启用
 };
 
+class ConfigManager {
+public:
+    static bool multiply_damage_switch;
+    static double multiply_damage_min;
+    static double multiply_damage_max;
+};
+
 #endif //CONFIG_H
