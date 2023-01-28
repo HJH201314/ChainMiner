@@ -9,9 +9,9 @@
 #define PLUGIN_INTRODUCTION         "A plugin enables players to gather blocks quicker."
 #define PLUGIN_AUTHOR               "HJH201314"
 #define PLUGIN_VERSION_MAJOR        0
-#define PLUGIN_VERSION_MINOR        2
-#define PLUGIN_VERSION_REVISION     5
-#define PLUGIN_VERSION_BUILD        7
+#define PLUGIN_VERSION_MINOR        3
+#define PLUGIN_VERSION_REVISION     0
+#define PLUGIN_VERSION_BUILD        0
 #define PLUGIN_VERSION_STATUS       PLUGIN_VERSION_DEV
 
 #define TARGET_BDS_PROTOCOL_VERSION 560

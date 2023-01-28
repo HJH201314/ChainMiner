@@ -4,7 +4,6 @@
 #include "Config.h"
 
 #define CONFIG_FILE "plugins/ChainMiner/config.json"
-#define DEFAULT_CONFIG 
 
 using json = nlohmann::json;
 
@@ -17,6 +16,11 @@ PlayerSetting playerSetting;
 Economic economic;
 
 vector<string> op_list;
+
+//初始化
+bool ConfigManager::multiply_damage_switch = false;
+double ConfigManager::multiply_damage_min = 1;
+double ConfigManager::multiply_damage_max = 1;
 
 void initConfig() {
     if (!std::filesystem::exists("plugins/ChainMiner/"))
@@ -43,7 +47,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 17
+#define CURRENT_CONFIG_VERSION 19
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -116,6 +120,18 @@ void readConfig() {
     for (auto& op : config_j["op"]) {
         op_list.push_back(op);
     }
+    //ConfigManager
+    //logger.debug("{} {}", config_j["multiply_damage"][0].is_number(), (double)config_j["multiply_damage"][0]);
+    if (config_j["multiply_damage"].size() == 2 && config_j["multiply_damage"][0].is_number() && config_j["multiply_damage"][1].is_number()) {
+        if (config_j["multiply_damage"][0] <= config_j["multiply_damage"][1]) {
+            ConfigManager::multiply_damage_switch = true;
+            ConfigManager::multiply_damage_min = config_j["multiply_damage"][0];
+            ConfigManager::multiply_damage_max = config_j["multiply_damage"][1];
+        }
+        else {
+            logger.warn("multiply_damage配置异常!");
+        }
+    }
 }
 
 void updateConfig() {
@@ -127,8 +143,8 @@ void updateConfig() {
         json_new["money注释"] = "money: llmoney 或 scoreboard, money.sbname: 记分项名";
     }
     if (json_new["version"] < 15) {
-        json_new["msg"]["mine.success注释"] = "成功采集后的消息提示,%Count% - 成功采集的方块数量";
-        json_new["msg"]["money.use注释"] = "消耗金钱后的消息提示,%Cost% - 消耗金钱,%Name% - 金钱名称,%Remain% - 剩余金钱";
+        json_new["msg"]["mine.success注释"] = "成功采集后的消息提示, %Count% - 成功采集的方块数量";
+        json_new["msg"]["money.use注释"] = "消耗金钱后的消息提示, %Cost% - 消耗金钱, %Name% - 金钱名称, %Remain% - 剩余金钱";
     }
     json_new["version"] = CURRENT_CONFIG_VERSION;
     std::ofstream configFile(CONFIG_FILE);
@@ -144,7 +160,6 @@ void updateConfig() {
 
 //保存config_j到文件
 void saveConfig() {
-    std::cout << "hihihi";
     std::ofstream configFile(CONFIG_FILE);
     if (!configFile.is_open()) {
         logger.warn("Failed to open file: " CONFIG_FILE);
@@ -183,8 +198,10 @@ json getDefaultConfig() {
                     {"default", true},
                     {"chain_while_sneaking_only", false},
                     {"mine.success", true},
+                    {"mine.damage", true},
                     {"switch.default注释", "玩家没有进行设置时的默认开关,允许布尔true/false"}
             }},
+            {"multiply_damage", json::array({1,1})},
             {"op", json::array({})},
             {"blocks注释1", "允许连锁采集的方块对应的命名空间ID,可按照样例自由添加."},
             {"blocks注释2", "cost表示每连锁采集一个该种方块消耗的金钱,limit表示连锁采集的最大数值."},
@@ -217,9 +234,11 @@ json getDefaultConfig() {
             }},
             {"msg", {
                     {"mine.success", "§a连锁采集 §e%Count% §a个方块."},
-                    {"mine.success注释", "成功采集后的消息提示,%Count% - 成功采集的方块数量"},
-                    {"money.use", "§b使用了 §e%Cost% §b个%Name%§c,§b剩余 §e%Remain% §b%Name%."},
-                    {"money.use注释", "消耗金钱后的消息提示,%Cost% - 消耗金钱,%Name% - 金钱名称,%Remain% - 剩余金钱"},
+                    {"mine.success注释", "成功采集后的消息提示, %Count% - 成功采集的方块数量"},
+                    {"mine.damage", "§c消耗 §6%Damage% §c点耐久."},
+                    {"mine.damage注释", "成狗采集后的耐久消耗提示, %Damage% - 消耗的耐久"},
+                    {"money.use", "§b使用了 §e%Cost% §b个%Name%§c, §b剩余 §e%Remain% §b%Name%."},
+                    {"money.use注释", "消耗金钱后的消息提示, %Cost% - 消耗金钱, %Name% - 金钱名称, %Remain% - 剩余金钱"},
                     {"switch.on", "§c[§6连§e锁§a采§b集§c] §a开启成功！"},
                     {"switch.on注释", "执行指令/hcm on后的提示"},
                     {"switch.off", "§c[§6连§e锁§a采§b集§c] §a关闭成功！"},
