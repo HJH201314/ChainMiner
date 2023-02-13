@@ -348,7 +348,7 @@ void miner2(int task_id, BlockPos* start_pos) {
             bool res = ev->call();
             chaining_blocks.erase(dp);
             if (!res) {
-                continue;
+                break;
             }
             else {
                 bl->playerDestroy(*task_list[task_id].pl, curpos);//playerDestroy here can only get drops
