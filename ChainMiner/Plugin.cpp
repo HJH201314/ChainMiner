@@ -235,11 +235,16 @@ void miner1(int id, BlockPos *pos, bool sub) {
         for (i = 0; i < 3; i++) {
             for (j = 0; j < 2; j++) {
                 if (task_list[id].cnt >= task_list[id].limit) goto end;
-                BlockPos newpos = pos->add(
-                        (i == 0 ? (j == 0 ? -1 : 1) : 0),
-                        (i == 1 ? (j == 0 ? -1 : 1) : 0),
-                        (i == 2 ? (j == 0 ? -1 : 1) : 0)
-                );//Gen 6 possibilities
+                BlockPos newpos = BlockPos(
+                    pos->x + (i == 0 ? (j == 0 ? -1 : 1) : 0),
+                    pos->y + (i == 1 ? (j == 0 ? -1 : 1) : 0),
+                    pos->z + (i == 2 ? (j == 0 ? -1 : 1) : 0)
+                );
+                //BlockPos newpos = pos->add(
+                //    (i == 0 ? (j == 0 ? -1 : 1) : 0),
+                //    (i == 1 ? (j == 0 ? -1 : 1) : 0),
+                //    (i == 2 ? (j == 0 ? -1 : 1) : 0)
+                //);//Gen 6 possibilities
                 Block *bl = Level::getBlock(newpos, task_list[id].dimId);
                 auto r = block_list.find(task_list[id].name);
                 //The same type of block or a similar block
@@ -324,7 +329,11 @@ void miner2(int task_id, BlockPos* start_pos) {
     while (task_list[task_id].cnt < task_list[task_id].limit && !block_q.empty()) {
         BlockPos curpos = block_q.front();
         for (int i = 0; i < 6; i++) {
-            BlockPos newpos = curpos.add(get<0>(dirs[i]), get<1>(dirs[i]), get<2>(dirs[i]));
+            BlockPos newpos = BlockPos(
+                curpos.x + get<0>(dirs[i]),
+                curpos.y + get<1>(dirs[i]),
+                curpos.z + get<2>(dirs[i])
+            );
             Block* bl = Level::getBlock(newpos, task_list[task_id].dimId);
             auto r = block_list.find(task_list[task_id].name);
             if (bl->getTypeName() == task_list[task_id].name || v_contains(r->second.similar, bl->getTypeName())) {
@@ -335,11 +344,15 @@ void miner2(int task_id, BlockPos* start_pos) {
         Block* bl = Level::getBlock(curpos, task_list[task_id].dimId);
         if (bl->getId() != 0) {
             //累计耐久损失
+            //1.当工具未附魔耐久时
+            //2.当附魔了耐久的工具踩中扣除概率1/(level+1)
             if (task_list[task_id].enchU == 0 ||
                 (task_list[task_id].enchU > 0 && ud(re) < (100 / (task_list[task_id].enchU + 1))))
                 task_list[task_id].cntD++;
 
             //破坏方块
+            //主动call玩家破坏事件，当事件被拦截时结束连锁（某个方块进入了领地等）
+            //TODO(低优先级):应当连锁所有能连锁的方块而不是一遇到拦截就结束
             auto ev = new Event::PlayerDestroyBlockEvent();
             ev->mBlockInstance = Level::getBlockInstance(curpos, task_list[task_id].dimId);
             ev->mPlayer = task_list[task_id].pl;
