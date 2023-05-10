@@ -10,6 +10,7 @@
 
 |BDS版本|LiteLoader版本|插件版本|
 |--|--|--|
+|1.19.81|2.13.x|0.3.0.4|
 |1.19.72|2.12.x|0.3.0.3|
 |1.19.63|2.11.x|0.3.0.2|
 |1.19.61|2.10.x|0.3.0.1|
@@ -116,8 +117,8 @@
         "chain_while_sneaking_only": false
     },
     "blocks": {
-        //木头（橡木、云杉、白桦、丛林木）
-        "minecraft:log": {
+        //橡木
+        "minecraft:oak_log": {
             "cost": 0,
             "limit": 256,
             "tools": [

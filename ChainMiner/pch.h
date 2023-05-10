@@ -13,6 +13,11 @@
 #include <llapi/EventAPI.h>
 #include <llapi/LoggerAPI.h>
 #include <llapi/I18nAPI.h>
+#include <FMT/chrono.h>
+#include <FMT/color.h>
+#include <FMT/core.h>
+#include <FMT/os.h>
+#include <FMT/format.h>
 #include "third-party/rapidjson/rapidjson.h"
 #include "third-party/rapidjson/document.h"
 #include "third-party/rapidjson/writer.h"

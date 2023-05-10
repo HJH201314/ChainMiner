@@ -27,7 +27,12 @@ public:
     ValidationError(ValidationError const&) = delete;
     ValidationError(ValidationError const&&) = delete;
 };
-enum class Type;
+enum class Type : char{
+    Invalid = 0,
+    Bool = 1,
+    Int = 2,
+    Float = 3,
+};
 
 #undef AFTER_EXTRA
 #ifndef DISABLE_CONSTRUCTOR_PREVENTION_GAMERULE
@@ -123,13 +128,13 @@ public:
 
 //protected:
     /**
-     * @symbol ?_setDefaultValue\@GameRule\@\@IEAAAEAV1\@H\@Z
-     */
-    MCAPI class GameRule & _setDefaultValue(int);
-    /**
      * @symbol ?_setDefaultValue\@GameRule\@\@IEAAAEAV1\@_N\@Z
      */
     MCAPI class GameRule & _setDefaultValue(bool);
+    /**
+     * @symbol ?_setDefaultValue\@GameRule\@\@IEAAAEAV1\@H\@Z
+     */
+    MCAPI class GameRule & _setDefaultValue(int);
 
 //private:
     /**
