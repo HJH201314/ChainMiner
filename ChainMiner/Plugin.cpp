@@ -65,6 +65,7 @@ void PluginInit() {
     initEventOnPlayerDestroy();
     // initEventOnBlockChange();
     registerCommand();
+    logger.info(fmt::format(fg(fmt::color::light_steel_blue) | fmt::emphasis::bold, "催更群：") + fmt::format(fg(fmt::color::gold) | fmt::emphasis::bold, "322586206"));
 }
 
 void initEventOnPlayerDestroy() {
@@ -75,17 +76,17 @@ void initEventOnPlayerDestroy() {
         if (chaining_blocks.count(getBlockDimAndPos(bli)) > 0) {
         	return true;//如果是连锁采集的就不处理(pl->playerDestroy()不会触发此事件)
         }
-        if (e.mPlayer->getPlayerGameType() != GameType::GameTypeSurvival) return true;
+        if (e.mPlayer->getPlayerGameType() != GameType::Survival) return true;
         if (!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         if (playerSetting.getSwitch(e.mPlayer->getXuid(), "chain_while_sneaking_only") && !e.mPlayer->isSneaking()) return true;
         Block *bl = bli.getBlock();
-        string bn = bl->getTypeName();
-        //logger.info("{} {} {} {}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant());
+        string bn = bl->getName().getString();
+        logger.debug("{} {} {} {}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant());
         //logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
         auto r = block_list.find(bn);
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
-            if (!r->second.enabled) return true;//全局关闭
-            if (!playerSetting.getSwitch(e.mPlayer->getXuid(),bn)) return true;//方块被关闭
+            if (!r->second.enabled) return true;//方块全局关闭
+            if (!playerSetting.getSwitch(e.mPlayer->getXuid(),bn)) return true;//方块被玩家关闭
 
             ItemStack *tool = (ItemStack *) &e.mPlayer->getCarriedItem();
             string toolType = tool->getTypeName();
@@ -248,7 +249,7 @@ void miner1(int id, BlockPos *pos, bool sub) {
                 Block *bl = Level::getBlock(newpos, task_list[id].dimId);
                 auto r = block_list.find(task_list[id].name);
                 //The same type of block or a similar block
-                if (bl->getTypeName() == task_list[id].name || v_contains(r->second.similar, bl->getTypeName())) {
+                if (bl->getName().getString() == task_list[id].name || v_contains(r->second.similar, bl->getName().getString())) {
                     //logger.debug("{} can be mine", newpos.toString());
 
                     //累计耐久损失
@@ -336,7 +337,7 @@ void miner2(int task_id, BlockPos* start_pos) {
             );
             Block* bl = Level::getBlock(newpos, task_list[task_id].dimId);
             auto r = block_list.find(task_list[task_id].name);
-            if (bl->getTypeName() == task_list[task_id].name || v_contains(r->second.similar, bl->getTypeName())) {
+            if (bl->getName().getString() == task_list[task_id].name || v_contains(r->second.similar, bl->getName().getString())) {
                 block_q.push(newpos);
             }
         }

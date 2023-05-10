@@ -17,6 +17,10 @@
 struct ExtendedStreamReadResult {
 
 #define AFTER_EXTRA
+    ExtendedStreamReadResult(StreamReadResult result, std::string resultContext) {
+        this->result = result;
+        this->resultContext = resultContext;
+    }
     StreamReadResult result;
     std::string resultContext;
 #undef AFTER_EXTRA
@@ -24,17 +28,10 @@ struct ExtendedStreamReadResult {
 public:
     struct ExtendedStreamReadResult& operator=(struct ExtendedStreamReadResult const &) = delete;
     ExtendedStreamReadResult(struct ExtendedStreamReadResult const &) = delete;
+    ExtendedStreamReadResult() = delete;
 #endif
 
 public:
-    /**
-     * @symbol ??0ExtendedStreamReadResult\@\@QEAA\@XZ
-     */
-    MCAPI ExtendedStreamReadResult();
-    /**
-     * @symbol ??0ExtendedStreamReadResult\@\@QEAA\@W4StreamReadResult\@\@\@Z
-     */
-    MCAPI ExtendedStreamReadResult(enum class StreamReadResult);
     /**
      * @symbol ??1ExtendedStreamReadResult\@\@QEAA\@XZ
      */

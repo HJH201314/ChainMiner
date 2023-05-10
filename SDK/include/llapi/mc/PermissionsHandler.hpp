@@ -18,7 +18,9 @@
 class PermissionsHandler {
 
 #define AFTER_EXTRA
-// Add Member There
+    // Add Member There
+    enum class CommandPermissionLevel mCommandPermissions;
+    enum class PlayerPermissionLevel mPlayerPermissions;
 
 #undef AFTER_EXTRA
 #ifndef DISABLE_CONSTRUCTOR_PREVENTION_PERMISSIONSHANDLER

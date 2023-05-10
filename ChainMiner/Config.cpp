@@ -47,7 +47,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 19
+#define CURRENT_CONFIG_VERSION 20
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -138,13 +138,21 @@ void updateConfig() {
     logger.info("更新配置文件...");
     json json_new = getDefaultConfig();
     json_new.merge_patch(config_j);//将已有配置合并到默认配置，避免被覆盖
-    if (json_new["version"] < 14) {//14以下才会更新
-        json_new["money"] = "llmoney";
-        json_new["money注释"] = "money: llmoney 或 scoreboard, money.sbname: 记分项名";
-    }
-    if (json_new["version"] < 15) {
-        json_new["msg"]["mine.success注释"] = "成功采集后的消息提示, %Count% - 成功采集的方块数量";
-        json_new["msg"]["money.use注释"] = "消耗金钱后的消息提示, %Cost% - 消耗金钱, %Name% - 金钱名称, %Remain% - 剩余金钱";
+    if (config_j["version"] < 20) {
+        // 复制旧版配置文件
+        std::filesystem::path original_path = "plugins/ChainMiner/config.json";
+        std::filesystem::path destination_path = "plugins/ChainMiner/config.json.v19";
+        try {
+            std::filesystem::copy_file(original_path, destination_path,
+                std::filesystem::copy_options::overwrite_existing);
+            logger.info("备份旧版配置文件至 plugins/ChainMiner/config.json.v19");
+        }
+        catch (const std::filesystem::filesystem_error& e) {
+            std::cout << "Error copying file: " << e.what() << std::endl;
+            logger.warn("备份旧版配置文件失败");
+        }
+        json_new = getDefaultConfig();
+        config_j = json_new;
     }
     json_new["version"] = CURRENT_CONFIG_VERSION;
     std::ofstream configFile(CONFIG_FILE);
@@ -205,10 +213,15 @@ json getDefaultConfig() {
             {"op", json::array({})},
             {"blocks注释1", "允许连锁采集的方块对应的命名空间ID,可按照样例自由添加."},
             {"blocks注释2", "cost表示每连锁采集一个该种方块消耗的金钱,limit表示连锁采集的最大数值."},
-            {"blocks注释3", "最大数值几百已经很多了,调到几千玩家可以用来崩服."},
             {"blocks", {
-                    {"minecraft:log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_oak_top"},{"name","橡木/云杉木/白桦木/丛林木"}}},//木头（橡木、云杉木、白桦木、丛林木）
-                    {"minecraft:log2", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木/深色橡木"}}},//木头（金合欢木、深色橡木）
+                    // {"minecraft:log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_oak_top"},{"name","橡木/云杉木/白桦木/丛林木"}}},//木头（橡木、云杉木、白桦木、丛林木）
+                    // {"minecraft:log2", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木/深色橡木"}}},//木头（金合欢木、深色橡木）
+                    {"minecraft:oak_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_oak_top"},{"name","橡木原木"}}},//橡木原木
+                    {"minecraft:spruce_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_spruce_top"},{"name","云杉木原木"}}},//云杉木原木
+                    {"minecraft:birch_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_birch_top"},{"name","白桦木原木"}}},//白桦木原木
+                    {"minecraft:jungle_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_jungle_top"},{"name","云杉木原木"}}},//云杉木原木
+                    {"minecraft:acacia_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木原木"}}},//金合欢木原木
+                    {"minecraft:dark_oak_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/dark_oak_log_top"},{"name","深色橡木原木"}}},//深色橡木原木
                     {"minecraft:mangrove_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/mangrove_log_top"},{"name","红树原木"}}},//红树原木
                     {"minecraft:crimson_stem", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/huge_fungus/stripped_crimson_stem_top"},{"name","绯红菌柄"}}},//绯红菌柄
                     {"minecraft:warped_stem", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/huge_fungus/stripped_warped_stem_top"},{"name","诡异菌柄"}}},//诡异菌柄
