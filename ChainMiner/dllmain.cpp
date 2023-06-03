@@ -2,10 +2,11 @@
 #include "pch.h"
 #include <llapi/LLAPI.h>
 #include "Version.h"
-#pragma comment(lib, "../SDK/Lib/bedrock_server_api.lib")
-#pragma comment(lib, "../SDK/Lib/bedrock_server_var.lib")
-#pragma comment(lib, "../SDK/Lib/SymDBHelper.lib")
-#pragma comment(lib, "../SDK/Lib/LiteLoader.lib")
+#pragma comment(lib, "../Lib/bedrock_server_api.lib")
+#pragma comment(lib, "../Lib/bedrock_server_var.lib")
+#pragma comment(lib, "../SDK/lib/SymDBHelper.lib")
+#pragma comment(lib, "../SDK/lib/LiteLoader.lib")
+//为保证兼容性，要动态载入LLMoney的dll文件
 //#pragma comment(lib, "../SDK/Lib/LLMoney.lib")
 
 
