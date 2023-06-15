@@ -47,7 +47,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 20
+#define CURRENT_CONFIG_VERSION 21
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -223,6 +223,7 @@ json getDefaultConfig() {
                     {"minecraft:acacia_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木原木"}}},//金合欢木原木
                     {"minecraft:dark_oak_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/dark_oak_log_top"},{"name","深色橡木原木"}}},//深色橡木原木
                     {"minecraft:mangrove_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/mangrove_log_top"},{"name","红树原木"}}},//红树原木
+                    {"minecraft:cherry_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/cherry_log_top"},{"name","樱花原木"}}},//红树原木
                     {"minecraft:crimson_stem", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/huge_fungus/stripped_crimson_stem_top"},{"name","绯红菌柄"}}},//绯红菌柄
                     {"minecraft:warped_stem", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/huge_fungus/stripped_warped_stem_top"},{"name","诡异菌柄"}}},//诡异菌柄
                     {"minecraft:quartz_ore", {DEFAULT_PARAMS,{"name","下界石英矿石"}}},//石英矿
