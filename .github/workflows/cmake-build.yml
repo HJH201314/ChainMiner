@@ -46,8 +46,8 @@ jobs:
       - name: Copy Out Files
         working-directory: ${{env.GITHUB_WORKSPACE}}
         run: |
-          cp cmake-build-release-visual-studio/Release/*.dll D:/out/plugins
-          cp cmake-build-release-visual-studio/Release/*.pdb D:/out/plugins
+          cp ${{env.GITHUB_WORKSPACE}}/build/Release/*.dll D:/out/plugins
+          cp ${{env.GITHUB_WORKSPACE}}/build/Release/*.pdb D:/out/plugins
         shell: bash
 
       - name: Upload plugins
