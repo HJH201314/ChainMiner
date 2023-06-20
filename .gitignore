@@ -33,7 +33,7 @@
 
 # Directorys
 .vs/*
-.github/*
+# .github/*
 x64/*
 .idea/*
 ChainMiner/x64/*
