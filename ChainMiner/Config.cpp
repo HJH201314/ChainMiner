@@ -47,7 +47,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 21
+#define CURRENT_CONFIG_VERSION 22
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -154,6 +154,11 @@ void updateConfig() {
         json_new = getDefaultConfig();
         config_j = json_new;
     }
+    if (config_j["version"] < 22) { // 解决深色橡木的texture错误
+        if (json_new.contains("blocks") && json_new["blocks"].contains("minecraft:dark_oak_log")) {
+            json_new["blocks"]["minecraft:dark_oak_log"]["texture"] = "textures/blocks/log_big_oak_top";
+        }
+    }
     json_new["version"] = CURRENT_CONFIG_VERSION;
     std::ofstream configFile(CONFIG_FILE);
     if (!configFile.is_open()) {
@@ -221,7 +226,7 @@ json getDefaultConfig() {
                     {"minecraft:birch_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_birch_top"},{"name","白桦木原木"}}},//白桦木原木
                     {"minecraft:jungle_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_jungle_top"},{"name","云杉木原木"}}},//云杉木原木
                     {"minecraft:acacia_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木原木"}}},//金合欢木原木
-                    {"minecraft:dark_oak_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/dark_oak_log_top"},{"name","深色橡木原木"}}},//深色橡木原木
+                    {"minecraft:dark_oak_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_big_oak_top"},{"name","深色橡木原木"}}},//深色橡木原木
                     {"minecraft:mangrove_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/mangrove_log_top"},{"name","红树原木"}}},//红树原木
                     {"minecraft:cherry_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/cherry_log_top"},{"name","樱花原木"}}},//红树原木
                     {"minecraft:crimson_stem", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/huge_fungus/stripped_crimson_stem_top"},{"name","绯红菌柄"}}},//绯红菌柄
