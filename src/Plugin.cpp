@@ -61,6 +61,7 @@ extern nlohmann::json config_j;
 
 void PluginInit() {
     logger.info("初始化... v{}.{}.{}.{}", PLUGIN_VERSION_MAJOR, PLUGIN_VERSION_MINOR, PLUGIN_VERSION_REVISION, PLUGIN_VERSION_BUILD);
+    logger.info("Compiled at {}, {}", __DATE__, __TIME__);
     initConfig();
     initEventOnPlayerDestroy();
     // initEventOnBlockChange();

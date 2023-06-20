@@ -6,9 +6,9 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE Release)
 
 file(GLOB_RECURSE SRC_FILES_DIR
-    ${PROJECT_SOURCE_DIR}/ChainMiner/*.cpp
-    ${PROJECT_SOURCE_DIR}/ChainMiner/*.hpp
-    ${PROJECT_SOURCE_DIR}/ChainMiner/*.h
+    ${PROJECT_SOURCE_DIR}/src/*.cpp
+    ${PROJECT_SOURCE_DIR}/src/*.hpp
+    ${PROJECT_SOURCE_DIR}/src/*.h
 )
 
 include_directories(
