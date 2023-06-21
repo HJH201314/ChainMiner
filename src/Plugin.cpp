@@ -82,8 +82,8 @@ void initEventOnPlayerDestroy() {
         if (playerSetting.getSwitch(e.mPlayer->getXuid(), "chain_while_sneaking_only") && !e.mPlayer->isSneaking()) return true;
         Block *bl = bli.getBlock();
         string bn = bl->getName().getString();
-        logger.debug("{} {} {} {}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant());
-        //logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
+        // logger.debug("{} {} {} {} {},{},{}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant(), blp.x, blp.y, blp.z);
+        // logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
         auto r = block_list.find(bn);
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
             if (!r->second.enabled) return true;//方块全局关闭
@@ -366,7 +366,9 @@ void miner2(int task_id, BlockPos* start_pos) {
                 break;
             }
             else {
-                bl->playerDestroy(*task_list[task_id].pl, curpos);//playerDestroy here can only get drops
+                // 非首个方块才进行模拟挖掘
+                if (task_list[task_id].cnt != 0)
+                    bl->playerDestroy(*task_list[task_id].pl, curpos); // playerDestroy仅生成掉落物
                 Level::setBlock(curpos, task_list[task_id].dimId, "minecraft:air", 0);
                 task_list[task_id].cnt++;
             }
@@ -397,7 +399,8 @@ void miner2(int task_id, BlockPos* start_pos) {
                 msg = s_replace(msg, "%Name%", config_j["money.name"]);
             }
         }
-        if (config_j["switch"]["mine.success"])
+        // 开启了成功提示且采集多个方块时发送提示
+        if (config_j["switch"]["mine.success"] && mi.cnt > 1)
             mi.pl->sendTextPacket(msg);
     }
     task_list.erase(task_id);
