@@ -27,10 +27,13 @@ private:
         off = 201,
         menu = 500,
         block = 501,
-        test = 999
+        test = 999,
+        damage = 1000
 	} opn;
     CommandSelector<Player> player;
     bool player_isSet;
+    int int_val;
+    bool int_val_isSet;
 public:
 	void execute(CommandOrigin const& ori, CommandOutput& outp) const {
 		switch (opn) {
@@ -156,6 +159,16 @@ public:
                 }
                 return;
             }
+            case CMOP::damage: {
+                auto pl = ori.getPlayer();
+                if (pl && int_val_isSet) {
+                    ItemStack item = pl->getSelectedItem();
+#include "Plugin.h"
+                    toolDamage(item, int_val);
+                    pl->setSelectedItem(item);
+                    pl->refreshInventory();
+                }
+            }
 		default:
 			break;
 		}
@@ -193,6 +206,14 @@ public:
             config_j["command"],
             makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional", "OP3"),
             makeMandatory(&ChainMinerCommand::player, "player", &ChainMinerCommand::player_isSet));
+        //2 params, operator & number
+        registry->addEnum<CMOP>("OP4",
+            { {"damage", CMOP::damage} });
+        registry->registerOverload<ChainMinerCommand>(
+            config_j["command"],
+            makeMandatory<CommandParameterDataType::ENUM>(&ChainMinerCommand::opn, "optional", "OP4"),
+            makeMandatory(&ChainMinerCommand::int_val, "count", &ChainMinerCommand::int_val_isSet)
+            );
 	}
     /* 
     * 方块独立设置

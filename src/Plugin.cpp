@@ -53,6 +53,7 @@ typedef struct minerinfo {
     Player* pl;
 } MinerInfo;
 
+// unordered_map<string, int> pos2id; // pos, task_id
 unordered_map<int, MinerInfo> task_list;//id,cnt
 unordered_set<string> chaining_blocks;//避免在call事件的时候进入死循环
 
@@ -64,15 +65,32 @@ void PluginInit() {
     logger.info("Compiled at {}, {}", __DATE__, __TIME__);
     initConfig();
     initEventOnPlayerDestroy();
-    // initEventOnBlockChange();
+    // initEventOnBlockChanged();
     registerCommand();
     logger.info(fmt::format(fg(fmt::color::light_steel_blue) | fmt::emphasis::bold, "催更群：") + fmt::format(fg(fmt::color::gold) | fmt::emphasis::bold, "322586206"));
 }
 
+//void initEventOnBlockChanged() {
+//    Event::BlockChangedEvent::subscribe([](const Event::BlockChangedEvent& e) {
+//        BlockInstance bli = e.mNewBlockInstance;
+//        auto blp = bli.getPosition();
+//        // logger.debug("BlockChange: {},{},{}", blp.x, blp.y, blp.z);
+//        if (!pos2id.empty()) {
+//            auto t = pos2id.find(blp.toString());
+//            if (t != pos2id.end()) {
+//                miner2(t->second, &blp);
+//                pos2id.erase(t->first);
+//            }
+//        }
+//        return true;
+//    });
+//}
+
 void initEventOnPlayerDestroy() {
-    Event::PlayerDestroyBlockEvent::subscribe([](const Event::PlayerDestroyBlockEvent& e) {
+    Event::PlayerDestroyBlockEvent::subscribe_ref([](Event::PlayerDestroyBlockEvent& e) {
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
+        // logger.debug("PlayerDestroy: {},{},{}", blp.x, blp.y, blp.z);
         
         if (chaining_blocks.count(getBlockDimAndPos(bli)) > 0) {
         	return true;//如果是连锁采集的就不处理(pl->playerDestroy()不会触发此事件)
@@ -138,10 +156,11 @@ void initEventOnPlayerDestroy() {
                 });
                 //add pos2id
                 string pos = getBlockDimAndPos(bli);
-                //logger.debug("start mine task id:{} for block:{} max:{}", id, task_list[id].name, task_list[id].limit);
 
-                //miner1(id, &blp, false);
                 miner2(id, &blp);
+
+                task_list.erase(id);
+                // pos2id.insert(std::make_pair(blp.toString(), id));
             }
         }
         return true;
@@ -189,12 +208,14 @@ int getDamageFromNbt(unique_ptr<CompoundTag> &nbt) {
 int toolDamage(ItemStack &tool, int count) {
     int damage = count;
     auto nbt = tool.getNbt();
-    //logger.debug("before:{} {}", nbt->toSNBT(), tool.getMaxDamage());
+    // logger.debug("before: {} {}", nbt->toSNBT(), tool.getMaxDamage());
     if (ConfigManager::multiply_damage_switch) {
         double rate = ConfigManager::multiply_damage_min + (ConfigManager::multiply_damage_max - ConfigManager::multiply_damage_min) * ud(re) / 100;
         //logger.debug("rate:{}", rate);
         damage = count * rate;
     }
+    // logger.debug("{} {} {}", tool.getDamageValue(), tool.hasDamageValue(), damage);
+    /*tool.setDamageValue(tool.getDamageValue() + damage);*/
     if (nbt->contains("tag")) {//必须判断否则会报错
         auto tag = nbt->getCompound("tag");
         if (tag->contains("Damage")) {
@@ -219,6 +240,7 @@ int toolDamage(ItemStack &tool, int count) {
         tool.setNbt(nbt.get());
         //logger.debug("new damage:{}", nbt->toSNBT());
     }
+    // logger.debug("after: {} {}", nbt->toSNBT(), tool.getMaxDamage());
     return damage;
 }
 
@@ -380,10 +402,11 @@ void miner2(int task_id, BlockPos* start_pos) {
     MinerInfo mi = task_list[task_id];
     if (mi.cnt > 0) {
         //减少耐久
-        ItemStack tool = mi.pl->getCarriedItem();
+        ItemStack tool = mi.pl->getSelectedItem();
         int dmg = toolDamage(tool, mi.cntD);
         //手动给玩家替换工具
-        mi.pl->setCarriedItem(tool);
+        // mi.pl->setItemSlot(mi.pl->getEquipmentSlotForItem(tool), tool);
+        mi.pl->setSelectedItem(tool);
         mi.pl->refreshInventory();
         string msg = config_j["msg"]["mine.success"];
         msg = s_replace(msg, "%Count%", std::to_string(mi.cnt));//有一个是自己挖的
@@ -403,5 +426,4 @@ void miner2(int task_id, BlockPos* start_pos) {
         if (config_j["switch"]["mine.success"] && mi.cnt > 1)
             mi.pl->sendTextPacket(msg);
     }
-    task_list.erase(task_id);
 }

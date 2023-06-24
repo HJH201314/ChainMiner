@@ -5,7 +5,7 @@
 //init
 void initEventOnPlayerDestroy();
 
-//void initEventOnBlockChange();
+void initEventOnBlockChanged();
 
 void registerCommand();
 
