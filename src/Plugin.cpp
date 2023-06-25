@@ -67,7 +67,7 @@ void PluginInit() {
     initEventOnPlayerDestroy();
     // initEventOnBlockChanged();
     registerCommand();
-    logger.info(fmt::format(fg(fmt::color::light_steel_blue) | fmt::emphasis::bold, "催更群：") + fmt::format(fg(fmt::color::gold) | fmt::emphasis::bold, "322586206"));
+    logger.info(fmt::format(fg(fmt::color::light_steel_blue) | fmt::emphasis::bold, "催更及反馈群：") + fmt::format(fg(fmt::color::gold) | fmt::emphasis::bold, "322586206"));
 }
 
 //void initEventOnBlockChanged() {
@@ -259,10 +259,25 @@ using std::get;
 void miner2(int task_id, BlockPos* start_pos) {
     queue<BlockPos> block_q;
     block_q.push(*start_pos);
-    constexpr tuple<int, int, int> dirs[6] = {{1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}};
+    // 与方块相邻的六个方块
+    static vector<tuple<int, int, int>> dirs1 = { {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1} };
+    // 以方块为中心的26个方块，优先相邻方块
+    static vector<tuple<int, int, int>> dirs2 = {
+        {1,0,0},{-1,0,0},{0,1,0},{0,-1,0},{0,0,1},{0,0,-1}, // 相邻六个
+        {1,0,1},{-1,0,1},{0,1,1},{0,-1,1},{1,1,1},{-1,-1,1},{1,-1,1},{-1,1,1}, // z+1 剩下8个
+        {1,0,-1},{-1,0,-1},{0,1,-1},{0,-1,-1},{1,1,-1},{-1,-1,-1},{1,-1,-1},{-1,1,-1}, // z-1剩下8个
+        {1,1,0},{-1,-1,0},{1,-1,0},{-1,1,0} // z剩下4个
+    };
+
+    // 在这里添加代码
+    vector<tuple<int, int, int>>& dirs = dirs1;
+    if (config_j["default_detect_method"] == "cube") {
+        dirs = dirs2;
+    }
+    
     while (task_list[task_id].cnt < task_list[task_id].limit && !block_q.empty()) {
         BlockPos curpos = block_q.front();
-        for (int i = 0; i < 6; i++) {
+        for (size_t i = 0; i < dirs.size(); i++) {
             BlockPos newpos = BlockPos(
                 curpos.x + get<0>(dirs[i]),
                 curpos.y + get<1>(dirs[i]),

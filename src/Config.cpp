@@ -47,7 +47,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 22
+#define CURRENT_CONFIG_VERSION 23
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -207,6 +207,7 @@ json getDefaultConfig() {
             {"money.sbname", "money"},
             {"money注释", "money: llmoney 或 scoreboard, money.sbname: 记分项名"},
             {"menu.count_per_page", -1},
+            {"default_detect_method", "block"},
             {"switch", {
                     {"default", true},
                     {"chain_while_sneaking_only", false},
