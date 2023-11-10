@@ -91,23 +91,23 @@ void initEventOnPlayerDestroy() {
         BlockInstance bli = e.mBlockInstance;
         BlockPos blp = bli.getPosition();
         // logger.debug("PlayerDestroy: {},{},{}", blp.x, blp.y, blp.z);
-
+        
         if (chaining_blocks.count(getBlockDimAndPos(bli)) > 0) {
-            return true;//如果是连锁采集的就不处理(pl->playerDestroy()不会触发此事件)
+        	return true;//如果是连锁采集的就不处理(pl->playerDestroy()不会触发此事件)
         }
         if (e.mPlayer->getPlayerGameType() != GameType::Survival) return true;
         if (!playerSetting.getSwitch(e.mPlayer->getXuid())) return true;
         if (playerSetting.getSwitch(e.mPlayer->getXuid(), "chain_while_sneaking_only") && !e.mPlayer->isSneaking()) return true;
-        Block* bl = bli.getBlock();
+        Block *bl = bli.getBlock();
         string bn = bl->getName().getString();
         // logger.debug("{} {} {} {} {},{},{}", bl->getName().getString(), bl->getId(), bl->getDescriptionId(), bl->getVariant(), blp.x, blp.y, blp.z);
         // logger.debug("{} BREAK {} AT {},{},{}", e.mPlayer->getRealName(), bl->getTypeName(), blp.x, blp.y, blp.z);
         auto r = block_list.find(bn);
         if (r != block_list.end()) {//如果是可以连锁挖掘的方块
             if (!r->second.enabled) return true;//方块全局关闭
-            if (!playerSetting.getSwitch(e.mPlayer->getXuid(), bn)) return true;//方块被玩家关闭
+            if (!playerSetting.getSwitch(e.mPlayer->getXuid(),bn)) return true;//方块被玩家关闭
 
-            ItemStack* tool = (ItemStack*)&e.mPlayer->getSelectedItem();
+            ItemStack *tool = (ItemStack *) &e.mPlayer->getSelectedItem();
             string toolType = tool->getTypeName();
             //logger.info("{}", toolType);
             auto& material = bl->getMaterial();
@@ -127,7 +127,7 @@ void initEventOnPlayerDestroy() {
                 && ((r->second.enchSilkTouch == 1 && hasSilkTouch) //仅精准采集工具
                     || (r->second.enchSilkTouch == 0 && !hasSilkTouch) //禁止精准采集工具
                     || r->second.enchSilkTouch == 2); //不论是否精准采集
-            //&& getDamageFromNbt(nbt) > 0; //无损坏的工具不能触发
+                //&& getDamageFromNbt(nbt) > 0; //无损坏的工具不能触发
             if (!canThisToolChain) return true;
 
             //logger.debug("{} is chainable using {}", bn, tool->getTypeName());
@@ -208,7 +208,7 @@ int getDamageFromNbt(unique_ptr<CompoundTag> &nbt) {
 int toolDamage(ItemStack &tool, int count) {
     int damage = count;
     auto nbt = tool.getNbt();
-     logger.debug("before: {} {}", nbt->toSNBT(), tool.getMaxDamage());
+    // logger.debug("before: {} {}", nbt->toSNBT(), tool.getMaxDamage());
     if (ConfigManager::multiply_damage_switch) {
         double rate = ConfigManager::multiply_damage_min + (ConfigManager::multiply_damage_max - ConfigManager::multiply_damage_min) * ud(re) / 100;
         //logger.debug("rate:{}", rate);
@@ -240,7 +240,7 @@ int toolDamage(ItemStack &tool, int count) {
         tool.setNbt(nbt.get());
         //logger.debug("new damage:{}", nbt->toSNBT());
     }
-     logger.debug("after: {} {}", nbt->toSNBT(), tool.getMaxDamage());
+    // logger.debug("after: {} {}", nbt->toSNBT(), tool.getMaxDamage());
     return damage;
 }
 
@@ -252,7 +252,7 @@ int countChainingBlocks() {
     return (int)chaining_blocks.size();
 }
 
-//使用队列进行连锁采集#include <llapi/ScheduleAPI.h>
+//使用队列进行连锁采集
 #include <tuple>
 using std::tuple;
 using std::get;
