@@ -42,3 +42,4 @@ ChainMiner/Tools/*
 cmake-build-release/*
 cmake-build-release-visual-studio/*
 output/*
+build/*
