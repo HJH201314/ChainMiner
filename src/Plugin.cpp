@@ -107,7 +107,7 @@ void initEventOnPlayerDestroy() {
             if (!r->second.enabled) return true;//方块全局关闭
             if (!playerSetting.getSwitch(e.mPlayer->getXuid(),bn)) return true;//方块被玩家关闭
 
-            ItemStack *tool = (ItemStack *) &e.mPlayer->getCarriedItem();
+            ItemStack *tool = (ItemStack *) &e.mPlayer->getSelectedItem();
             string toolType = tool->getTypeName();
             //logger.info("{}", toolType);
             auto &material = bl->getMaterial();
@@ -179,8 +179,8 @@ string getBlockDimAndPos(BlockInstance& bli) {
 short getEnchantLevel(unique_ptr<CompoundTag> &nbt, short id) {
     if (nbt->contains("tag")) {//必须判断否则会报错
         auto tag = nbt->getCompound("tag");
-        if (tag->contains("ench")) {
-            ListTag *ench = tag->getList("ench");
+        if (tag->contains(ItemStack::TAG_ENCHANTS)) {
+            ListTag *ench = tag->getList(ItemStack::TAG_ENCHANTS);
             for (auto it = ench->begin(); it != ench->end(); ++it) {
                 CompoundTag *ec = (*it)->asCompoundTag();
                 if (ec->getShort("id") == id) {
