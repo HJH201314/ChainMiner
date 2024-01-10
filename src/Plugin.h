@@ -11,16 +11,16 @@ void registerCommand();
 
 //miner
 void miner1(int id, BlockPos* pos, bool sub = false);
-void miner2(int task_id, BlockPos* start_pos);
+void miner2(int task_id, const BlockPos* start_pos);
 
 //funcs
 string getBlockDimAndPos(BlockInstance& bli);
 
 #include <llapi/mc/CompoundTag.hpp>//compile needed
 
-short getEnchantLevel(std::unique_ptr<CompoundTag>& nbt, short id);
+short getEnchantLevel(const std::unique_ptr<CompoundTag>& nbt, short id);
 
-int getDamageFromNbt(std::unique_ptr<CompoundTag>& nbt);
+int getDamageFromNbt(const std::unique_ptr<CompoundTag>& nbt);
 
 int toolDamage(ItemStack& tool, int count);
 
