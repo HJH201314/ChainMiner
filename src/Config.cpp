@@ -21,6 +21,7 @@ vector<string> op_list;
 bool ConfigManager::multiply_damage_switch = false;
 double ConfigManager::multiply_damage_min = 1;
 double ConfigManager::multiply_damage_max = 1;
+string ConfigManager::msg_prefix = "";
 
 void initConfig() {
     if (!std::filesystem::exists("plugins/ChainMiner/"))
@@ -47,7 +48,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 23
+#define CURRENT_CONFIG_VERSION 24
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -131,6 +132,9 @@ void readConfig() {
         else {
             logger.warn("multiply_damage配置异常!");
         }
+    }
+    if (config_j["msg.prefix"].is_string()) {
+        ConfigManager::msg_prefix = config_j["msg.prefix"];
     }
 }
 
@@ -256,7 +260,9 @@ json getDefaultConfig() {
                     {"mine.success", "§a连锁采集 §e%Count% §a个方块."},
                     {"mine.success注释", "成功采集后的消息提示, %Count% - 成功采集的方块数量"},
                     {"mine.damage", "§c消耗 §6%Damage% §c点耐久."},
-                    {"mine.damage注释", "成狗采集后的耐久消耗提示, %Damage% - 消耗的耐久"},
+                    {"mine.damage注释", "成功采集后的耐久消耗提示, %Damage% - 消耗的耐久"},
+                    {"mine.damage.warning", "§c工具仅剩 §6%Damage% §c点耐久, 请谨慎使用!"},
+                    {"mine.damage.warning注释", "工具耐久不足提示, %Damage% - 剩余的耐久"},
                     {"money.use", "§b使用了 §e%Cost% §b个%Name%§c, §b剩余 §e%Remain% §b%Name%."},
                     {"money.use注释", "消耗金钱后的消息提示, %Cost% - 消耗金钱, %Name% - 金钱名称, %Remain% - 剩余金钱"},
                     {"switch.on", "§c[§6连§e锁§a采§b集§c] §a开启成功！"},
@@ -267,7 +273,8 @@ json getDefaultConfig() {
                     {"switch.block.on注释", "开启指定方块的连锁采集的提示"},
                     {"switch.block.off", "§c[§6连§e锁§a采§b集§c] §a关闭 §e%Block% §a采集！"},
                     {"switch.block.off注释", "关闭指定方块的连锁采集的提示"},
-            }}
+            }},
+            {"msg.prefix", "§4C§ch§6ai§gn§eMi§an§be§9r§r §f>>§r "}
     };
     return j;
 }

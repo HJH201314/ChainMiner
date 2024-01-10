@@ -27,6 +27,7 @@ public:
     static bool multiply_damage_switch;
     static double multiply_damage_min;
     static double multiply_damage_max;
+    static string msg_prefix;
 };
 
 #endif //CONFIG_H
