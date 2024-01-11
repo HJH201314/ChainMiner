@@ -1,38 +1,42 @@
-# # 连锁采集 - ChainMiner
+<!--lint disable awesome-heading awesome-github awesome-toc double-link -->
+
+<h2 align='center'>连锁采集 | ChainMiner</h2>
+
+<p align='center'>
+A plugin helps players gather blocks faster.
+
+<!--lint ignore-->
+
+<p align='center'>
+
+<img src="https://img.shields.io/badge/LiteLoaderBDS-Plugin-teal?style=flat-square&color=26a69a" alt="Based On LL">
+<img src="https://img.shields.io/github/license/HJH201314/openai-front?logo=dependabot&style=flat-square&color=8bc34a" alt="Github License">
+<img src="https://img.shields.io/badge/Runs on-BDS-orange?logo=microsoftedge&style=flat-square&color=ffc107" alt="Runs On BDS">
+<img src="https://img.shields.io/github/stars/HJH201314/ChainMiner?logo=github&style=flat-square&color=ff5722" alt="Github Repo Stars">
+
+</p>
+
+## 前置
+
+- LiteLoaderBDS
+- LLMoney (可选)
+
+## 介绍
 
 基于LiteLoaderBDS（[MineBBS](https://www.minebbs.com/liteloader/) [Github](https://github.com/LiteLDev/LiteLoaderBDS)）的插件
 
 这个插件旨在帮助玩家更快地采集方块
 
-由于本人是编程初学者，插件难免存在不足，恳请各位指正~
-
-## 兼容性
-
-| BDS版本        | LiteLoader版本 | 插件版本                 |
-|--------------|--------------|----------------------|
-| 1.20.32      | 2.16.x       | 0.3.2.0              |
-| 1.20.01      | 2.14.x       | 0.3.0.6              |
-| 1.19.81      | 2.13.x       | 0.3.0.4              |
-| 1.19.72      | 2.12.x       | 0.3.0.3              |
-| 1.19.63      | 2.11.x       | 0.3.0.2              |
-| 1.19.61      | 2.10.x       | 0.3.0.1              |
-| 1.19.50 & 51 | 2.9.x        | 0.3.0 & 0.2.5.7(fix) |
-| 1.19.40      | 2.8.x        | 0.2.5.6              |
-| 1.19.30      | 2.7.x        | 0.2.5.5              |
-| 1.19.21 & 22 | 2.6.x        | 0.2.5.4              |
-| 1.19.20      | 2.5.x        | 0.2.5.4              |
-| 1.19.10      | 2.4.x        | 0.2.5.3              |
-| 1.19.1       | 忘了           | 0.2.5                |
-
 ## 特性
 
 - 下蹲连锁开关
 - 兼容领地插件
+- 兼容假矿插件
 - 仅生存模式下可用
 - 工具耐久耗尽保护
 - 工具耐久倍率扣除
 - 允许玩家自由开关
-- 兼容耐久、时运魔咒
+- 支持耐久、时运魔咒
 - 可设置指定工具触发连锁
 - 支持LLMoney（[MineBBS](https://www.minebbs.com/resources/llmoney-ll.2385/) [Github](https://github.com/LiteLDev/LiteLoaderPlugins)）、记分板经济
 
@@ -46,12 +50,14 @@
 开启连锁采集（op及控制台可使用目标选择器target）
 - `/hcm off [target]`
 关闭连锁采集（op及控制台可使用目标选择器target）
-- `/hcm menu`
+- `/hcm` 或 `/hcm menu`
 打开连锁采集菜单
 - `/hcm block`
 直接打开单个方块设置菜单
 
-## 配置文件
+## 配置
+
+插件预设了原木和矿物的连锁，可开箱即用。
 
 ### `config.json` - 插件设置
 
@@ -70,6 +76,9 @@
   - `0` 为默认值，表示附有精准采集的工具无法触发连锁（适用于矿物等）
   - `1` 表示当且仅当工具附有精准采集时才能触发连锁（适用于蓝冰等）
   - `2` 表示无论工具是否附有精准采集都能触发连锁（适用于原木等）
+- `detect_mode` 方块探测方式
+  - `abut` 为默认值，仅探测被挖掘方块的相邻方块
+  - `cube` 表示探测以挖掘方块为中心的3\*3\*3正方体盒子区域
 
 #### `multiply_damage` - 耐久扣除倍率范围
 形如`[1, 1]`、`[1.1, 1.2]`，左侧值≤右侧值，真正扣除的耐久为在此范围内生成的随机数乘以原本需要的耐久值并取整。
@@ -83,22 +92,28 @@
 ## TODO
 - [ ] 一键配置所有木材的连锁采集
 - [ ] 使用RemoteCallAPI重写LLMoney的调用
-- [ ] 支持其它连锁检测方式，优化对金合欢木等的连锁
+- [x] 支持其它连锁检测方式，优化对金合欢木等的连锁
 - [ ] 游戏内菜单修改插件设置（OP模块）
 
-## 食用方式
-1. 使用`git clone`克隆本项目
-2. 运行`generate_lib.bat`并选择BDS的.pdb文件，生成library
-3. 打开`ChainMiner.sln`解决方案，使用`Ctrl+B`生成`ChainMiner.dll`文件
-注意：你可能需要修改解决方案中的属性，以使插件输出到正确位置
+## Build
+1. Clone this repository using `git clone`
+2. Run `generate_lib.bat` and select the .pdb file of BDS to generate library
+3. Open solution `ChainMiner.sln`, use `Ctrl+B` to build `ChainMiner.dll` file
 
-## 开源
+### Notice
+You might need to modify some attributes in the solution file for correct output path.
+
+## Repository
 
 [Github](https://github.com/HJH201314/ChainMiner)
 
 ## 附录
 
-#### 配置文件样例
+### 兼容性
+
+[看这里](./docs/zh-CN/compatibility.md)
+
+### 配置文件样例
 
 ```json
 //本样例为方便说明添加了注释，请勿直接复制粘贴全文，否则插件无法解析。
