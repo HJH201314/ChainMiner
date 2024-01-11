@@ -48,7 +48,7 @@ void initConfig() {
     }
 }
 
-#define CURRENT_CONFIG_VERSION 24
+#define CURRENT_CONFIG_VERSION 25
 
 void readConfig() {
     std::ifstream configFile(CONFIG_FILE);
@@ -78,7 +78,7 @@ void readConfig() {
             block_list[el.key()].similar = el.value()["similar"].get<std::vector<string>>();
         }
         if (el.value().contains("SilkTouch")) {
-            block_list[el.key()].enchSilkTouch = int(el.value()["SilkTouch"]);
+            block_list[el.key()].enchSilkTouch = static_cast<int>(el.value()["SilkTouch"]);
         }
         if (el.value().contains("texture")) {
             block_list[el.key()].texture = el.value()["texture"];
@@ -88,6 +88,12 @@ void readConfig() {
         }
         if (el.value().contains("enabled")) {
             block_list[el.key()].enabled = el.value()["enabled"];
+        }
+        if (el.value().contains("detect_mode")) {
+            if (const string detectMode = el.value()["detect_mode"];
+                detectMode == "cube" || detectMode == "abut") {
+                block_list[el.key()].detectMode = detectMode;
+            }
         }
         //logger.debug("{}", 7);
     }
@@ -230,7 +236,7 @@ json getDefaultConfig() {
                     {"minecraft:spruce_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_spruce_top"},{"name","云杉木原木"}}},//云杉木原木
                     {"minecraft:birch_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_birch_top"},{"name","白桦木原木"}}},//白桦木原木
                     {"minecraft:jungle_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_jungle_top"},{"name","云杉木原木"}}},//云杉木原木
-                    {"minecraft:acacia_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木原木"}}},//金合欢木原木
+                    {"minecraft:acacia_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_acacia_top"},{"name","金合欢木原木"},{"detect_mode","cube"}}},//金合欢木原木
                     {"minecraft:dark_oak_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/log_big_oak_top"},{"name","深色橡木原木"}}},//深色橡木原木
                     {"minecraft:mangrove_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/mangrove_log_top"},{"name","红树原木"}}},//红树原木
                     {"minecraft:cherry_log", {DEFAULT_PARAMS_LOG,{"texture","textures/blocks/cherry_log_top"},{"name","樱花原木"}}},//红树原木

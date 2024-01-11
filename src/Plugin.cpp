@@ -270,7 +270,7 @@ void miner2(int task_id, const BlockPos *start_pos) {
 
     // 判断使用的连锁范围
     vector<tuple<int, int, int> > &dirs = dirs1;
-    if (config_j["default_detect_method"] == "cube") {
+    if (config_j["default_detect_method"] == "cube" || block_list[task_list[task_id].name].detectMode == "cube") {
         dirs = dirs2;
     }
 
@@ -351,8 +351,9 @@ void miner2(int task_id, const BlockPos *start_pos) {
                                  std::to_string(curTool.getMaxDamage() - curTool.getDamageValue()));
             }
             // 开启了成功提示且采集多个方块时发送提示
-            if (config_j["switch"]["mine.success"] && cnt > 1)
+            if (config_j["switch"]["mine.success"] && cnt > 1) {
                 pl->sendTextPacket(msg);
+            }
         }
 
         task_list.erase(task_id);

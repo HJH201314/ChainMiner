@@ -6,11 +6,11 @@
 
 // Plugin Information, used in dllmain.cpp for register plugin
 #define PLUGIN_NAME                 "ChainMiner"
-#define PLUGIN_INTRODUCTION         "A plugin enables players to gather blocks quicker."
+#define PLUGIN_INTRODUCTION         "A plugin helps players to gather blocks quicker."
 #define PLUGIN_AUTHOR               "HJH201314"
 #define PLUGIN_VERSION_MAJOR        0
 #define PLUGIN_VERSION_MINOR        3
-#define PLUGIN_VERSION_REVISION     2
+#define PLUGIN_VERSION_REVISION     3
 #define PLUGIN_VERSION_BUILD        0
 #define PLUGIN_VERSION_STATUS       PLUGIN_VERSION_RELEASE
 
@@ -36,7 +36,7 @@
 
 #define FILE_VERSION_BLOCK_HEADER           0x04004B0L
 #define FILE_VERSION_COMPANY_NAME           PLUGIN_AUTHOR
-#define FILE_VERSION_LEGAL_COPYRIGHT        "Copyright (C) 2023"
+#define FILE_VERSION_LEGAL_COPYRIGHT        "Copyright (C) 2024"
 #define FILE_VERSION_FILE_DESCRIPTION       PLUGIN_INTRODUCTION
 #define FILE_VERSION_FILE_VERSION_STRING    PLUGIN_FILE_VERSION_STRING
 #define FILE_VERSION_INTERNAL_NAME          PLUGIN_NAME
