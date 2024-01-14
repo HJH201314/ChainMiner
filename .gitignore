@@ -36,9 +36,13 @@
 # .github/*
 x64/*
 .idea/*
+build/*
+build-cmake/*
 ChainMiner/x64/*
 ChainMiner/Pdb/*
 ChainMiner/Tools/*
 cmake-build-release/*
 cmake-build-release-visual-studio/*
 output/*
+
+lip/*

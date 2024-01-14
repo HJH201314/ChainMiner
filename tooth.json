@@ -1,0 +1,23 @@
+{
+    "format_version": 2,
+    "tooth": "https://github.com/HJH201314/ChainMiner",
+    "version": "0.3.3",
+    "info": {
+        "name": "ChainMiner",
+        "description": "A plugin helps players to gather blocks quicker.",
+        "author": "HJH201314",
+        "source": "https://github.com/HJH201314/ChainMiner",
+        "tags": [
+            "mine"
+        ]
+    },
+    "commands": {},
+    "files": {
+        "place": [
+            {
+                "src": "ChainMiner/*",
+                "dest": "plugins/ChainMiner"
+            }
+        ]
+    }
+}
