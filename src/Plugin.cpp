@@ -77,9 +77,11 @@ void initEventOnPlayerDestroy() {
 
         // Handle event in the next tick for compatibility
         Schedule::nextTick([=]() {
-            BlockInstance bli = e.mBlockInstance;
+            BlockInstance bli = e.mBlockInstance; // 挖掘前的方块的实例
             const BlockPos blp = bli.getPosition();
-            // logger.debug("PlayerDestroy: {},{},{}", blp.x, blp.y, blp.z);
+
+            // 获取同位置的方块新实例, 检测方块是否已掉落, 未掉落(被领地拦截等)则不进行连锁
+            if (!Level::getBlock(blp, bli.getDimensionId())->isAir()) return true;
 
             // 仅在生存模式下可连锁
             if (e.mPlayer->getPlayerGameType() != GameType::Survival) return true;
@@ -268,13 +270,18 @@ void miner2(int task_id, const BlockPos *start_pos) {
         {1, 1, 0}, {-1, -1, 0}, {1, -1, 0}, {-1, 1, 0} // z剩下4个
     };
 
+    MinerInfo &curTask = task_list[task_id];
+
     // 判断使用的连锁范围
     vector<tuple<int, int, int> > &dirs = dirs1;
     if (config_j["default_detect_method"] == "cube" || block_list[task_list[task_id].name].detectMode == "cube") {
         dirs = dirs2;
     }
 
-    while (task_list[task_id].cnt < task_list[task_id].limit && !block_q.empty()) {
+    // 记录不可挖掘的方块
+    unordered_set<string> undamagableBlocks;
+
+    while (curTask.cnt < curTask.limit && !block_q.empty()) {
         BlockPos curpos = block_q.front();
         for (auto & dir : dirs) {
             auto newpos = BlockPos(
@@ -282,38 +289,41 @@ void miner2(int task_id, const BlockPos *start_pos) {
                 curpos.y + get<1>(dir),
                 curpos.z + get<2>(dir)
             );
-            const Block *bl = Level::getBlock(newpos, task_list[task_id].dimId);
-            if (const auto r = block_list.find(task_list[task_id].name);
-                bl->getName().getString() == task_list[task_id].name ||
-                v_contains(r->second.similar, bl->getName().getString())) {
+            const Block *bl = Level::getBlock(newpos, curTask.dimId);
+            if (const auto r = block_list.find(curTask.name);
+                (bl->getName().getString() == curTask.name
+                || v_contains(r->second.similar, bl->getName().getString()))
+                && !undamagableBlocks.contains(fmt::format("{}.{}.{}.{}", curpos.x, curpos.y, curpos.z, curTask.dimId))
+                ) {
                 block_q.push(newpos);
             }
         }
 
-        if (const Block *bl = Level::getBlock(curpos, task_list[task_id].dimId); bl->getId() != 0) {
-            //累计耐久损失
-            //1.当工具未附魔耐久时
-            //2.当附魔了耐久的工具踩中扣除概率1/(level+1)
-            if (task_list[task_id].enchU == 0 ||
-                (task_list[task_id].enchU > 0 && ud(re) < (100 / (task_list[task_id].enchU + 1))))
-                task_list[task_id].cntD++;
-
+        if (const Block *bl = Level::getBlock(curpos, curTask.dimId); bl->getId() != 0) {
             //破坏方块
             //主动call玩家破坏事件，当事件被拦截时结束连锁（某个方块进入了领地等）
-            //TODO(低优先级):应当连锁所有能连锁的方块而不是一遇到拦截就结束
             const auto ev = new Event::PlayerDestroyBlockEvent();
-            ev->mBlockInstance = Level::getBlockInstance(curpos, task_list[task_id].dimId);
-            ev->mPlayer = task_list[task_id].pl;
+            ev->mBlockInstance = Level::getBlockInstance(curpos, curTask.dimId);
+            ev->mPlayer = curTask.pl;
             string dp = getBlockDimAndPos(ev->mBlockInstance);
             chaining_blocks.insert(dp);
             const bool res = ev->call();
             chaining_blocks.erase(dp);
             if (!res) {
-                break;
+                // 将方块标记为不可挖掘
+                undamagableBlocks.insert(fmt::format("{}.{}.{}.{}", curpos.x, curpos.y, curpos.z, curTask.dimId));
             } else {
-                bl->playerDestroy(*task_list[task_id].pl, curpos); // playerDestroy仅生成掉落物
-                Level::setBlock(curpos, task_list[task_id].dimId, "minecraft:air", 0);
-                task_list[task_id].cnt++;
+                bl->playerDestroy(*curTask.pl, curpos); // playerDestroy仅生成掉落物
+                Level::setBlock(curpos, curTask.dimId, "minecraft:air", 0);
+
+                //累计耐久损失
+                //1.当工具未附魔耐久时+1
+                //2.当附魔了耐久的工具踩中扣除概率1/(level+1)
+                if (curTask.enchU == 0 ||
+                    (curTask.enchU > 0 && ud(re) < (100 / (curTask.enchU + 1))))
+                    curTask.cntD++;
+
+                curTask.cnt++;
             }
         }
         block_q.pop();
@@ -321,7 +331,7 @@ void miner2(int task_id, const BlockPos *start_pos) {
 
     //在下一刻进行结果计算，否则手持物品无法更新
     Schedule::nextTick([&, task_id]() {
-        if (const auto [name, dimId, limit, cnt, cntD, tool, enchU, pl] = task_list[task_id]; cnt > 0) {
+        if (const auto [name, dimId, limit, cnt, cntD, tool, enchU, pl] = curTask; cnt > 0) {
             //减少耐久
             ItemStack curTool = pl->getSelectedItem();
             const int dmg = toolDamage(curTool, cntD);
